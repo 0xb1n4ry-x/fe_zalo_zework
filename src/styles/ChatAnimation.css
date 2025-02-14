@@ -1,0 +1,58 @@
+@keyframes bounce {
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-20px);
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes typewriter {
+    from {
+        width: 0;
+    }
+    to {
+        width: 100%;
+    }
+}
+
+@keyframes blinkCursor {
+    from {
+        border-right-color: rgba(0, 0, 0, 0.75);
+    }
+    to {
+        border-right-color: transparent;
+    }
+}
+
+.chat-bubble {
+    animation: bounce 2s infinite, fadeIn 0.5s;
+}
+
+.chat-bubble:nth-child(2) {
+    animation-delay: 0.2s;
+}
+
+.chat-bubble:nth-child(3) {
+    animation-delay: 0.4s;
+}
+
+.typewriter {
+    overflow: hidden;
+    border-right: 2px solid rgba(0, 0, 0, 0.75);
+    white-space: nowrap;
+    margin: 0 auto;
+    letter-spacing: 0.15em;
+    animation: typewriter 4s steps(44) 1s 1 normal both, blinkCursor 500ms steps(44) infinite normal;
+}
+
