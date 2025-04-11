@@ -10,21 +10,38 @@ interface Message {
     timestamp: string
 }
 
-async function fetchUserProfile(userId: string): Promise<User> {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/fuid?id=${userId}`)
+async function fetchUserProfile(id: string): Promise<User> {
+    if (typeof window === 'undefined' || !window.localStorage) {
+        throw new Error("localStorage is not available");
+    }
+
+    const rawData = localStorage.getItem('dataZalo') || '[]';
+
+    let ld;
+    try {
+        ld = JSON.parse(rawData);
+    } catch (e) {
+        throw new Error("Invalid data in localStorage");
+    }
+
+    if (!Array.isArray(ld) || ld.length === 0) {
+        throw new Error("No authentication data found");
+    }
+
+    const s = ld[0].zpw_sek;
+    const e = ld[0].zpw_enk;
+    const i = ld[0].imei;
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}api/fuid`, {
+        method: "GET",
+        headers: {'Content-Type': 'application/json'}, body:JSON.stringify({id, i, e, s})
+    })
     if (!response.ok) {
         throw new Error("Failed to fetch user profile")
     }
     return response.json()
 }
 
-async function fetchChatMessages(userId: string): Promise<Message[]> {
-    const response = await fetch(`/api/fuid?id=${userId}`)
-    if (!response.ok) {
-        throw new Error("Failed to fetch chat messages")
-    }
-    return response.json()
-}
+
 
 export function useChatData(selectedUserId: string | null) {
     const [messages, setMessages] = useState<Message[]>([])
