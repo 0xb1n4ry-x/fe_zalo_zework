@@ -1,0 +1,25 @@
+name: ze-fe
+
+on:
+  push:
+    branches: [production]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-22.04  
+    steps:
+      - name: Deploy using SSH
+        uses: appleboy/ssh-action@master  
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          password: ${{ secrets.PASSWORD }}
+          port: 22
+          script: |
+            cd /root/fe_zalo_zework
+            git fetch origin
+            git checkout production
+            git pull
+            npm install
+            npm run build
+            pm2 reload zalo-zework
