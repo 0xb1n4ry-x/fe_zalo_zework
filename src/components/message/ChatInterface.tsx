@@ -956,7 +956,7 @@ export default function ChatInterface({contact}) {
       try {
         if(contact.isGroup){
           console.log("isGroup")
-           response = await fetch(`${process.env.API_URL}api/mtg`, {
+           response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}api/mtg`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -964,7 +964,7 @@ export default function ChatInterface({contact}) {
             body: JSON.stringify(payload),
           });
         } else {
-           response = await fetch(`${process.env.API_URL}api/mtu`, {
+           response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}api/mtu`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',

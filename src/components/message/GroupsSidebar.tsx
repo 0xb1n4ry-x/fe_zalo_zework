@@ -95,7 +95,7 @@ function useGroups() {
 
 
         // Make the API request with the extracted parameters
-        const response = await fetch(`${process.env.API_URL}api/gag`, {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}api/gag`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'

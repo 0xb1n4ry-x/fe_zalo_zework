@@ -39,7 +39,7 @@ async function fetchUserProfile(id: string): Promise<FUIDResponse> {
     const s = ld[0].zpw_sek;
     const e = ld[0].zpw_enk;
     const i = ld[0].imei;
-    const response = await fetch(`${process.env.API_URL}api/fuid`, {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}api/fuid`, {
         method: "GET",
         headers: {'Content-Type': 'application/json'}, body:JSON.stringify({id, i, e, s})
     })
