@@ -263,7 +263,7 @@ export const fetchGroupsChat = async () => {
 };
 export async function getZaloAccounts(userId: string): Promise<zaloAccount[]> {
     try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/get-accounts-zalo`, {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}api/get-accounts-zalo`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
