@@ -4,7 +4,7 @@ import {Key} from "react";
 
 export async function generateQRCode(): Promise<QRCodeData> {
 
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}api/get-qr`, {
+    const response = await fetch(`${process.env.API_URL}api/get-qr`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -20,7 +20,7 @@ export type ScanStatusResponse = {
 }
 
 export async function checkScanStatus(sessionId: string | undefined):Promise<ScanStatusResponse> {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}api/waiting-scan`, {
+    const response = await fetch(`${process.env.API_URL}api/waiting-scan`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -35,7 +35,7 @@ export type ConfirmLoginResponse = {
     userData?: any; // tuỳ vào backend trả gì
 }
 export async function confirmLogin(sessionId: string | undefined, userId: string | undefined): Promise<ConfirmLoginResponse> {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}api/waiting-confirm`, {
+    const response = await fetch(`${process.env.API_URL}api/waiting-confirm`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -48,7 +48,7 @@ export async function confirmLogin(sessionId: string | undefined, userId: string
 
 export async function checkExistingUser(): Promise<UserData | null> {
     try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}api/get-user`, {
+        const response = await fetch(`${process.env.API_URL}api/get-user`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
@@ -64,7 +64,7 @@ export async function checkExistingUser(): Promise<UserData | null> {
 export async function findInfoByPN(p:string): Promise<void> {
     try {
         const queryString = new URLSearchParams({ p }).toString();
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}api/fnb?${queryString}`, {
+        const response = await fetch(`${process.env.API_URL}api/fnb?${queryString}`, {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
 
@@ -180,7 +180,7 @@ export const fetchChats = async () => {
         const i = ld[0].imei;
 
         // Use our improved fetchWithRetry function
-        const response: ApiResponse<{data : any[]}> = await fetchWithRetry(`${process.env.NEXT_PUBLIC_API_URL}api/gc`, {
+        const response: ApiResponse<{data : any[]}> = await fetchWithRetry(`${process.env.API_URL}api/gc`, {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({i, e, s})
@@ -235,7 +235,7 @@ export const fetchGroupsChat = async () => {
 
         // Use our improved fetchWithRetry function
 
-        const responseGroups : ApiResponse<{data : any[]}> = await fetchWithRetry(`${process.env.NEXT_PUBLIC_API_URL}api/gag`, {
+        const responseGroups : ApiResponse<{data : any[]}> = await fetchWithRetry(`${process.env.API_URL}api/gag`, {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({i, e, s})
@@ -263,7 +263,7 @@ export const fetchGroupsChat = async () => {
 };
 export async function getZaloAccounts(userId: string): Promise<zaloAccount[]> {
     try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/get-accounts-zalo`, {
+        const response = await fetch(`${process.env.API_URL}/api/get-accounts-zalo`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

@@ -140,7 +140,7 @@ export function DashboardNav({ collapsed = false, onNavClick }: DashboardNavProp
       console.log("Đăng xuất với:", { token, sessionId })
 
       // Gọi API đăng xuất để vô hiệu hóa session từ server
-       await fetch(`${process.env.NEXT_PUBLIC_API_URL || ''}api/logout`, {
+       await fetch(`${process.env.API_URL || ''}api/logout`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -258,7 +258,7 @@ export function DashboardNav({ collapsed = false, onNavClick }: DashboardNavProp
           const userId =  user.userId
           console.log(userId)
 
-          const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}api/get-account-zalo`, {
+          const response = await fetch(`${process.env.API_URL}api/get-account-zalo`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
