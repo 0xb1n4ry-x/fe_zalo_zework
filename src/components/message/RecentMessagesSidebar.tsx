@@ -6,7 +6,93 @@ import Image from "next/image"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { recentMessages } from "@/lib/data"
 
-export default function RecentMessagesSidebar({ onContactSelect, selectedContact, isCollapsed, onToggleCollapse }) {
+type Tag = {
+  text: string;
+  color: string;
+};
+type Contact = {
+  id: string;
+  name: string;
+  displayName: string;
+  avatar: string;
+  tags?: Tag[]
+};
+
+
+type RecentMessagesSidebarProps = {
+  onContactSelect: (contact: Contact) => void
+  selectedContact: Contact | null
+  isCollapsed: boolean
+  onToggleCollapse: () => void
+}
+type RecentMessageItemProps = {
+  message: {
+    id: string
+    contact: {
+      id: string
+      name: string
+      displayName: string
+      avatar: string
+      tags?: {
+        text: string
+        color: string
+      }[],
+      online : boolean
+
+    }
+    unread : number
+    timestamp: string
+    lastMessage: string
+    isTyping: boolean
+    unreadCount: number
+    time: string
+  }
+  isSelected: boolean
+  onClick: () => void
+  isCollapsed: boolean
+}
+type RecentMessage = {
+  id: string
+  contact: {
+    id: string
+    name: string
+    displayName: string
+    avatar: string
+    tags?: { text: string; color: string }[]
+    online: boolean
+  }
+  lastMessage: string
+  timestamp: string
+  unread: number
+  unreadCount: number
+  isTyping: boolean
+  time: string
+}
+function normalizeMessage(data: any): RecentMessage {
+  return {
+    id: String(data.id),
+    contact: {
+      id: data.contact.id ?? String(data.id),
+      name: data.contact.name,
+      displayName: data.contact.name,
+      avatar: data.contact.avatar ?? "/placeholder.svg",
+      tags: data.contact.tags ?? [],
+      online: data.contact.online ?? false,
+    },
+    lastMessage: data.lastMessage,
+    timestamp: data.timestamp,
+    unread: data.unread,
+    unreadCount: data.unread ?? 0,
+    isTyping: data.isTyping ?? false,
+    time: data.timestamp,
+  }
+}
+export default function RecentMessagesSidebar({
+                                                onContactSelect,
+                                                selectedContact,
+                                                isCollapsed,
+                                                onToggleCollapse,
+                                              }: RecentMessagesSidebarProps) {
   return (
     <div
       className={`${
@@ -62,9 +148,17 @@ export default function RecentMessagesSidebar({ onContactSelect, selectedContact
         {recentMessages.map((message) => (
           <RecentMessageItem
             key={message.id}
-            message={message}
+            message={normalizeMessage(message)}
             isSelected={selectedContact?.name === message.contact.name}
-            onClick={() => onContactSelect(message.contact)}
+            onClick={() =>
+                onContactSelect({
+                  id: message.contact.name ?? "temp-id", // hoặc message.contact.name nếu không có id
+                  name: message.contact.name,
+                  displayName: message.contact.name, // hoặc custom
+                  avatar: "/placeholder.svg", // hoặc message.contact.avatar nếu có
+                  tags: message.contact.tags,
+                })
+            }
             isCollapsed={isCollapsed}
           />
         ))}
@@ -83,14 +177,14 @@ export default function RecentMessagesSidebar({ onContactSelect, selectedContact
   )
 }
 
-function RecentMessageItem({ message, isSelected, onClick, isCollapsed }) {
+function RecentMessageItem({ message, isSelected, onClick, isCollapsed } : RecentMessageItemProps) {
   const messagePreview = message.isTyping
     ? "đang nhập..."
     : message.lastMessage.length > 30 && !isCollapsed
       ? message.lastMessage.substring(0, 30) + "..."
       : message.lastMessage
 
-  const getTagColor = (color) => {
+  const getTagColor = (color:string) => {
     switch (color) {
       case "blue":
         return "bg-blue-100 text-blue-800"

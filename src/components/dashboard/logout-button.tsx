@@ -6,7 +6,8 @@ import { LogOut, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useToast } from "@/hooks/use-toast"
 import Cookies from "js-cookie"
-
+type ButtonVariant = "default" | "link" | "secondary" | "destructive" | "outline" | "ghost";
+type ButtonSize = "default" | "sm" | "lg" | "icon"
 export default function LogoutButton({ variant = "default", size = "default", className = "", showIcon = true }) {
     const [isLoading, setIsLoading] = useState(false)
     const router = useRouter()
@@ -35,7 +36,7 @@ export default function LogoutButton({ variant = "default", size = "default", cl
                 }),
             })
 
-            const data = await response.json()
+             await response.json()
 
             // Vẫn tiếp tục xóa cache ngay cả khi API trả về lỗi
             // để đảm bảo người dùng luôn có thể đăng xuất
@@ -122,10 +123,14 @@ export default function LogoutButton({ variant = "default", size = "default", cl
         })
     }
 
+
     return (
         <Button
-            variant={variant}
-            size={size}
+
+            variant={variant as ButtonVariant}
+
+            size={size as ButtonSize}
+
             className={className}
             onClick={handleLogout}
             disabled={isLoading}

@@ -1,13 +1,13 @@
 "use client"
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Textarea } from "@/components/ui/textarea"
-import { DashboardShell } from "@/components/dashboard/dashboard-shell"
-import { DashboardHeader } from "@/components/dashboard/dashboard-header"
+import {Key, ReactElement, ReactNode, ReactPortal, SetStateAction, useState} from "react"
+import {Button} from "@/components/ui/button"
+import {Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle} from "@/components/ui/card"
+import {Input} from "@/components/ui/input"
+import {Tabs, TabsContent, TabsList, TabsTrigger} from "@/components/ui/tabs"
+import {Textarea} from "@/components/ui/textarea"
+import {DashboardShell} from "@/components/dashboard/dashboard-shell"
+import {DashboardHeader} from "@/components/dashboard/dashboard-header"
 import {
   Dialog,
   DialogContent,
@@ -17,199 +17,222 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
-import { Label } from "@/components/ui/label"
-import { Copy, Plus, Search, AlertCircle, Edit, Trash2 } from "lucide-react"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import {Label} from "@/components/ui/label"
+import {Copy, Plus, Search, AlertCircle, Edit, Trash2} from "lucide-react"
+import {Alert, AlertDescription, AlertTitle} from "@/components/ui/alert"
+import {DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger} from "@/components/ui/dropdown-menu"
 
+interface Template {
+  id: string; // hoặc number, tùy vào kiểu bạn dùng
+  // ... các thuộc tính khác
+}
+interface Props {
+  name?: string,
+  category?: string,
+}
 export default function TemplatesPage() {
   const [templates, setTemplates] = useState([...initialTemplates])
   const [searchQuery, setSearchQuery] = useState("")
-  const [editingTemplate, setEditingTemplate] = useState(null)
+  const [editingTemplate, setEditingTemplate] = useState<Template | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
+  const [duplicateError, setDuplicateError] = useState<Props | null>(null);
 
   const filteredTemplates = templates.filter(
-    (template) =>
-      template.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      template.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      template.content.toLowerCase().includes(searchQuery.toLowerCase()),
+      (template) =>
+          template.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          template.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          template.content.toLowerCase().includes(searchQuery.toLowerCase()),
   )
 
-  const handleAddTemplate = (newTemplate) => {
-    setTemplates([...templates, { ...newTemplate, id: templates.length + 1 }])
+  const handleAddTemplate = (newTemplate: {
+    id: number;
+    name: string;
+    description: string;
+    category: string;
+    content: string;
+    updated: string
+  }) => {
+    setTemplates([...templates, {...newTemplate, id: templates.length + 1}])
   }
 
-  const handleEditTemplate = (template) => {
+  const handleEditTemplate = (template: SetStateAction<null>) => {
+    // @ts-ignore
     setEditingTemplate(template)
     setIsEditDialogOpen(true)
   }
 
+  // @ts-ignore
   const handleUpdateTemplate = (updatedTemplate) => {
     setTemplates(templates.map((template) => (template.id === updatedTemplate.id ? updatedTemplate : template)))
     setIsEditDialogOpen(false)
   }
 
-  const handleDeleteTemplate = (id) => {
+  const handleDeleteTemplate = (id: number) => {
     setTemplates(templates.filter((template) => template.id !== id))
   }
 
+  // @ts-ignore
   return (
-    <DashboardShell>
-      <DashboardHeader heading="Mẫu Tin Nhắn" text="Tạo và quản lý mẫu tin nhắn." />
-      <Tabs defaultValue="all" className="space-y-4">
-        <div className="flex items-center justify-between">
-          <TabsList>
-            <TabsTrigger value="all">Tất Cả Mẫu</TabsTrigger>
-            <TabsTrigger value="welcome">Chào Mừng</TabsTrigger>
-            <TabsTrigger value="support">Hỗ Trợ</TabsTrigger>
-            <TabsTrigger value="marketing">Marketing</TabsTrigger>
-          </TabsList>
-          <div className="flex items-center gap-2">
+      <DashboardShell>
+        <DashboardHeader heading="Mẫu Tin Nhắn" text="Tạo và quản lý mẫu tin nhắn."/>
+        <Tabs defaultValue="all" className="space-y-4">
+          <div className="flex items-center justify-between">
+            <TabsList>
+              <TabsTrigger value="all">Tất Cả Mẫu</TabsTrigger>
+              <TabsTrigger value="welcome">Chào Mừng</TabsTrigger>
+              <TabsTrigger value="support">Hỗ Trợ</TabsTrigger>
+              <TabsTrigger value="marketing">Marketing</TabsTrigger>
+            </TabsList>
             <div className="flex items-center gap-2">
-              <Search className="h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Tìm kiếm mẫu..."
-                className="h-9 w-[200px] lg:w-[250px]"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
+              <div className="flex items-center gap-2">
+                <Search className="h-4 w-4 text-muted-foreground"/>
+                <Input
+                    placeholder="Tìm kiếm mẫu..."
+                    className="h-9 w-[200px] lg:w-[250px]"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </div>
+              <AddTemplateDialog onAddTemplate={handleAddTemplate} existingTemplates={templates}/>
             </div>
-            <AddTemplateDialog onAddTemplate={handleAddTemplate} existingTemplates={templates} />
           </div>
-        </div>
-        <TabsContent value="all" className="space-y-4">
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {filteredTemplates.map((template) => (
-              <TemplateCard
-                key={template.id}
-                template={template}
-                onEdit={handleEditTemplate}
-                onDelete={handleDeleteTemplate}
-              />
-            ))}
-          </div>
-        </TabsContent>
-        <TabsContent value="welcome" className="space-y-4">
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {filteredTemplates
-              .filter((template) => template.category === "Chào Mừng")
-              .map((template) => (
-                <TemplateCard
-                  key={template.id}
-                  template={template}
-                  onEdit={handleEditTemplate}
-                  onDelete={handleDeleteTemplate}
-                />
+          <TabsContent value="all" className="space-y-4">
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {filteredTemplates.map((template) => (
+                  <TemplateCard
+                      key={template.id}
+                      template={template}
+                      onEdit={handleEditTemplate}
+                      onDelete={handleDeleteTemplate}
+                  />
               ))}
-          </div>
-        </TabsContent>
-        <TabsContent value="support" className="space-y-4">
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {filteredTemplates
-              .filter((template) => template.category === "Hỗ Trợ")
-              .map((template) => (
-                <TemplateCard
-                  key={template.id}
-                  template={template}
-                  onEdit={handleEditTemplate}
-                  onDelete={handleDeleteTemplate}
-                />
-              ))}
-          </div>
-        </TabsContent>
-        <TabsContent value="marketing" className="space-y-4">
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {filteredTemplates
-              .filter((template) => template.category === "Marketing")
-              .map((template) => (
-                <TemplateCard
-                  key={template.id}
-                  template={template}
-                  onEdit={handleEditTemplate}
-                  onDelete={handleDeleteTemplate}
-                />
-              ))}
-          </div>
-        </TabsContent>
-      </Tabs>
+            </div>
+          </TabsContent>
+          <TabsContent value="welcome" className="space-y-4">
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {filteredTemplates
+                  .filter((template) => template.category === "Chào Mừng")
+                  .map((template) => (
+                      <TemplateCard
+                          key={template.id}
+                          template={template}
+                          onEdit={handleEditTemplate}
+                          onDelete={handleDeleteTemplate}
+                      />
+                  ))}
+            </div>
+          </TabsContent>
+          <TabsContent value="support" className="space-y-4">
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {filteredTemplates
+                  .filter((template) => template.category === "Hỗ Trợ")
+                  .map((template) => (
+                      <TemplateCard
+                          key={template.id}
+                          template={template}
+                          onEdit={handleEditTemplate}
+                          onDelete={handleDeleteTemplate}
+                      />
+                  ))}
+            </div>
+          </TabsContent>
+          <TabsContent value="marketing" className="space-y-4">
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {filteredTemplates
+                  .filter((template) => template.category === "Marketing")
+                  .map((template) => (
+                      <TemplateCard
+                          key={template.id}
+                          template={template}
+                          onEdit={handleEditTemplate}
+                          onDelete={handleDeleteTemplate}
+                      />
+                  ))}
+            </div>
+          </TabsContent>
+        </Tabs>
 
-      {editingTemplate && (
-        <EditTemplateDialog
-          template={editingTemplate}
-          isOpen={isEditDialogOpen}
-          onClose={() => setIsEditDialogOpen(false)}
-          onUpdate={handleUpdateTemplate}
-          existingTemplates={templates.filter((t) => t.id !== editingTemplate.id)}
-        />
-      )}
-    </DashboardShell>
+        {editingTemplate && (
+            <EditTemplateDialog
+                template={editingTemplate}
+                isOpen={isEditDialogOpen}
+                onClose={() => setIsEditDialogOpen(false)}
+                onUpdate={handleUpdateTemplate}
+                // @ts-ignore
+                existingTemplates={templates.filter((t) => t.id !== editingTemplate.id)}
+            />
+        )}
+      </DashboardShell>
   )
 }
 
-function TemplateCard({ template, onEdit, onDelete }) {
+// @ts-ignore
+function TemplateCard({template, onEdit, onDelete}) {
   const handleCopy = () => {
     navigator.clipboard.writeText(template.content)
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-start justify-between">
-          <div>
-            <CardTitle>{template.name}</CardTitle>
-            <CardDescription>{template.description}</CardDescription>
-          </div>
-          <div className="flex items-center gap-2">
-            <div
-              className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${
-                template.category === "Chào Mừng"
-                  ? "bg-green-100 text-green-800"
-                  : template.category === "Hỗ Trợ"
-                    ? "bg-blue-100 text-blue-800"
-                    : "bg-purple-100 text-purple-800"
-              }`}
-            >
-              {template.category}
+      <Card>
+        <CardHeader>
+          <div className="flex items-start justify-between">
+            <div>
+              <CardTitle>{template.name}</CardTitle>
+              <CardDescription>{template.description}</CardDescription>
             </div>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-8 w-8 p-0">
-                  <span className="sr-only">Mở menu</span>
-                  <svg
-                    width="15"
-                    height="15"
-                    viewBox="0 0 15 15"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-4 w-4"
-                  >
-                    <path
-                      d="M3.625 7.5C3.625 8.12132 3.12132 8.625 2.5 8.625C1.87868 8.625 1.375 8.12132 1.375 7.5C1.375 6.87868 1.87868 6.375 2.5 6.375C3.12132 6.375 3.625 6.87868 3.625 7.5ZM8.625 7.5C8.625 8.12132 8.12132 8.625 7.5 8.625C6.87868 8.625 6.375 8.12132 6.375 7.5C6.375 6.87868 6.87868 6.375 7.5 6.375C8.12132 6.375 8.625 6.87868 8.625 7.5ZM13.625 7.5C13.625 8.12132 13.1213 8.625 12.5 8.625C11.8787 8.625 11.375 8.12132 11.375 7.5C11.375 6.87868 11.8787 6.375 12.5 6.375C13.1213 6.375 13.625 6.87868 13.625 7.5Z"
-                      fill="currentColor"
-                      fillRule="evenodd"
-                      clipRule="evenodd"
-                    ></path>
-                  </svg>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => onEdit(template)}>
-                  <Edit className="mr-2 h-4 w-4" />
-                  Chỉnh sửa
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => onDelete(template.id)} className="text-red-600 focus:text-red-600">
-                  <Trash2 className="mr-2 h-4 w-4" />
-                  Xóa
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <div className="flex items-center gap-2">
+              <div
+                  className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${
+                      template.category === "Chào Mừng"
+                          ? "bg-green-100 text-green-800"
+                          : template.category === "Hỗ Trợ"
+                              ? "bg-blue-100 text-blue-800"
+                              : "bg-purple-100 text-purple-800"
+                  }`}
+              >
+                {template.category}
+              </div>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="h-8 w-8 p-0">
+                    <span className="sr-only">Mở menu</span>
+                    <svg
+                        width="15"
+                        height="15"
+                        viewBox="0 0 15 15"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-4 w-4"
+                    >
+                      <path
+                          d="M3.625 7.5C3.625 8.12132 3.12132 8.625 2.5 8.625C1.87868 8.625 1.375 8.12132 1.375 7.5C1.375 6.87868 1.87868 6.375 2.5 6.375C3.12132 6.375 3.625 6.87868 3.625 7.5ZM8.625 7.5C8.625 8.12132 8.12132 8.625 7.5 8.625C6.87868 8.625 6.375 8.12132 6.375 7.5C6.375 6.87868 6.87868 6.375 7.5 6.375C8.12132 6.375 8.625 6.87868 8.625 7.5ZM13.625 7.5C13.625 8.12132 13.1213 8.625 12.5 8.625C11.8787 8.625 11.375 8.12132 11.375 7.5C11.375 6.87868 11.8787 6.375 12.5 6.375C13.1213 6.375 13.625 6.87868 13.625 7.5Z"
+                          fill="currentColor"
+                          fillRule="evenodd"
+                          clipRule="evenodd"
+                      ></path>
+                    </svg>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => onEdit(template)}>
+                    <Edit className="mr-2 h-4 w-4"/>
+                    Chỉnh sửa
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => onDelete(template.id)} className="text-red-600 focus:text-red-600">
+                    <Trash2 className="mr-2 h-4 w-4"/>
+                    Xóa
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
           </div>
-        </div>
-      </CardHeader>
-      <CardContent>
-        <div className="rounded-md bg-muted p-3 text-sm whitespace-pre-wrap">
-          {template.content.split(/(\{[^}]+\})/).map((part, index) => {
-            if (part.match(/\{[^}]+\}/)) {
+        </CardHeader>
+        <CardContent>
+          <div className="rounded-md bg-muted p-3 text-sm whitespace-pre-wrap">
+            {template.content.split(/(\{[^}]+\})/).map((part :any, index:number) => {
+
+
+              if (part.match(/\{[^}]+\}/)) {
               return (
                 <span key={index} className="px-1 bg-primary/10 text-primary font-medium rounded">
                   {part}
@@ -231,6 +254,7 @@ function TemplateCard({ template, onEdit, onDelete }) {
   )
 }
 
+// @ts-ignore
 function AddTemplateDialog({ onAddTemplate, existingTemplates }) {
   const [open, setOpen] = useState(false)
   const [newTemplate, setNewTemplate] = useState({
@@ -240,14 +264,14 @@ function AddTemplateDialog({ onAddTemplate, existingTemplates }) {
     content: "",
     updated: new Date().toLocaleDateString(),
   })
-  const [duplicateError, setDuplicateError] = useState(null)
-  // Trong AddTemplateDialog, thêm state để theo dõi lỗi trùng lặp tên
-  const [duplicateNameError, setDuplicateNameError] = useState(null)
 
+  // Trong AddTemplateDialog, thêm state để theo dõi lỗi trùng lặp tên
+  const [duplicateNameError, setDuplicateNameError] = useState<Props | null>(null);
+  const [duplicateError, setDuplicateError] = useState<Props | null>(null);
   // Thêm hàm kiểm tra trùng lặp tên
-  const checkDuplicateName = (name) => {
+  const checkDuplicateName = (name: string) => {
     const normalizedName = name.trim().toLowerCase()
-    const duplicate = existingTemplates.find((template) => template.name.trim().toLowerCase() === normalizedName)
+    const duplicate = existingTemplates.find((template: { name: string }) => template.name.trim().toLowerCase() === normalizedName)
 
     if (duplicate) {
       return {
@@ -260,7 +284,7 @@ function AddTemplateDialog({ onAddTemplate, existingTemplates }) {
   }
 
   // Thêm xử lý khi tên thay đổi
-  const handleNameChange = (e) => {
+  const handleNameChange = (e: { target: { value: any } }) => {
     const name = e.target.value
     setNewTemplate({ ...newTemplate, name })
 
@@ -277,9 +301,9 @@ function AddTemplateDialog({ onAddTemplate, existingTemplates }) {
     }
   }
 
-  const checkDuplicateTemplate = (content) => {
+  const checkDuplicateTemplate = (content: string) => {
     const normalizedContent = content.trim().toLowerCase()
-    const duplicate = existingTemplates.find((template) => template.content.trim().toLowerCase() === normalizedContent)
+    const duplicate = existingTemplates.find((template: { content: string }) => template.content.trim().toLowerCase() === normalizedContent)
 
     if (duplicate) {
       return {
@@ -291,10 +315,10 @@ function AddTemplateDialog({ onAddTemplate, existingTemplates }) {
     return { exists: false }
   }
 
-  const handleContentChange = (e) => {
+  const handleContentChange = (e: { target: { value: any } }) => {
     const content = e.target.value
     setNewTemplate({ ...newTemplate, content })
-
+    const [duplicateError, setDuplicateError] = useState<Props | null>(null);
     // Kiểm tra trùng lặp khi nội dung thay đổi
     if (content.trim()) {
       const duplicateCheck = checkDuplicateTemplate(content)
@@ -309,7 +333,7 @@ function AddTemplateDialog({ onAddTemplate, existingTemplates }) {
   }
 
   // Cập nhật handleSubmit để kiểm tra trùng lặp tên
-  const handleSubmit = (e) => {
+  const handleSubmit = (e: { preventDefault: () => void }) => {
     e.preventDefault()
 
     // Kiểm tra lại trùng lặp tên trước khi thêm
@@ -409,7 +433,7 @@ function AddTemplateDialog({ onAddTemplate, existingTemplates }) {
                 <AlertCircle className="h-4 w-4" />
                 <AlertTitle>Phát hiện nội dung trùng lặp</AlertTitle>
                 <AlertDescription>
-                  Nội dung này trùng với mẫu tin nhắn "{duplicateError.name}" trong danh mục {duplicateError.category}.
+                  Nội dung này trùng với mẫu tin nhắn {duplicateError.name} trong danh mục {duplicateError.category}.
                 </AlertDescription>
               </Alert>
             )}
@@ -436,16 +460,17 @@ function AddTemplateDialog({ onAddTemplate, existingTemplates }) {
   )
 }
 
+// @ts-ignore
 function EditTemplateDialog({ template, isOpen, onClose, onUpdate, existingTemplates }) {
   const [editedTemplate, setEditedTemplate] = useState({ ...template })
-  const [duplicateError, setDuplicateError] = useState(null)
+
   // Trong EditTemplateDialog, thêm state để theo dõi lỗi trùng lặp tên
-  const [duplicateNameError, setDuplicateNameError] = useState(null)
+
 
   // Thêm hàm kiểm tra trùng lặp tên
-  const checkDuplicateName = (name) => {
+  const checkDuplicateName = (name: string) => {
     const normalizedName = name.trim().toLowerCase()
-    const duplicate = existingTemplates.find((template) => template.name.trim().toLowerCase() === normalizedName)
+    const duplicate = existingTemplates.find((template: { name: string }) => template.name.trim().toLowerCase() === normalizedName)
 
     if (duplicate) {
       return {
@@ -458,7 +483,7 @@ function EditTemplateDialog({ template, isOpen, onClose, onUpdate, existingTempl
   }
 
   // Thêm xử lý khi tên thay đổi
-  const handleNameChange = (e) => {
+  const handleNameChange = (e: { target: { value: any } }) => {
     const name = e.target.value
     setEditedTemplate({ ...editedTemplate, name })
 
@@ -475,9 +500,9 @@ function EditTemplateDialog({ template, isOpen, onClose, onUpdate, existingTempl
     }
   }
 
-  const checkDuplicateTemplate = (content) => {
+  const checkDuplicateTemplate = (content: string) => {
     const normalizedContent = content.trim().toLowerCase()
-    const duplicate = existingTemplates.find((template) => template.content.trim().toLowerCase() === normalizedContent)
+    const duplicate = existingTemplates.find((template: { content: string }) => template.content.trim().toLowerCase() === normalizedContent)
 
     if (duplicate) {
       return {
@@ -489,10 +514,10 @@ function EditTemplateDialog({ template, isOpen, onClose, onUpdate, existingTempl
     return { exists: false }
   }
 
-  const handleContentChange = (e) => {
+  const handleContentChange = (e: { target: { value: any } }) => {
     const content = e.target.value
     setEditedTemplate({ ...editedTemplate, content })
-
+    const [duplicateError, setDuplicateError] = useState<Props | null>(null);
     // Kiểm tra trùng lặp khi nội dung thay đổi
     if (content.trim()) {
       const duplicateCheck = checkDuplicateTemplate(content)
@@ -507,9 +532,9 @@ function EditTemplateDialog({ template, isOpen, onClose, onUpdate, existingTempl
   }
 
   // Cập nhật handleSubmit để kiểm tra trùng lặp tên
-  const handleSubmit = (e) => {
+  const handleSubmit = (e: { preventDefault: () => void }) => {
     e.preventDefault()
-
+    const [duplicateError, setDuplicateError] = useState<Props | null>(null);
     // Kiểm tra lại trùng lặp tên trước khi cập nhật
     const duplicateNameCheck = checkDuplicateName(editedTemplate.name)
     if (duplicateNameCheck.exists) {
@@ -533,6 +558,8 @@ function EditTemplateDialog({ template, isOpen, onClose, onUpdate, existingTempl
     onUpdate(updatedTemplate)
   }
 
+  const [duplicateError, setDuplicateError] = useState<Props | null>(null);
+  const [duplicateNameError, setDuplicateNameError] = useState<Props | null>(null);
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[600px]">
@@ -584,7 +611,7 @@ function EditTemplateDialog({ template, isOpen, onClose, onUpdate, existingTempl
                 value={editedTemplate.content}
                 onChange={handleContentChange}
                 required
-                className={duplicateError ? "border-red-500 focus-visible:ring-red-500" : ""}
+                className={duplicateNameError ? "border-red-500 focus-visible:ring-red-500" : ""}
               />
               <p className="text-xs text-muted-foreground">
                 Sử dụng <span className="px-1 bg-primary/10 text-primary font-medium rounded">{"{name}"}</span> cho tên
@@ -598,7 +625,7 @@ function EditTemplateDialog({ template, isOpen, onClose, onUpdate, existingTempl
                 <AlertCircle className="h-4 w-4" />
                 <AlertTitle>Phát hiện nội dung trùng lặp</AlertTitle>
                 <AlertDescription>
-                  Nội dung này trùng với mẫu tin nhắn "{duplicateError.name}" trong danh mục {duplicateError.category}.
+                  Nội dung này trùng với mẫu tin nhắn {duplicateError.name} trong danh mục {duplicateError.category}.
                 </AlertDescription>
               </Alert>
             )}

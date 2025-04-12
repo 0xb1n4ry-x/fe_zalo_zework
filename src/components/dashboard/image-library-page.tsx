@@ -19,7 +19,21 @@ import {
 import { Label } from "@/components/ui/label"
 import { Copy, Download, Plus, Search, Trash2, Upload } from "lucide-react"
 import Image from "next/image"
+type ImageType = NewImage & {
+  id: number;
+  size: string;
+  uploaded: string;
+}
 
+// Hoặc tự định nghĩa
+type NewImage = {
+  name: string;
+  category: string;
+  tags: string[];
+  url: string;
+  size: string;
+  uploaded: string;
+}
 export default function ImageLibraryPage() {
   const [images, setImages] = useState([...initialImages])
   const [searchQuery, setSearchQuery] = useState("")
@@ -30,11 +44,18 @@ export default function ImageLibraryPage() {
       image.tags.some((tag) => tag.toLowerCase().includes(searchQuery.toLowerCase())),
   )
 
-  const handleAddImage = (newImage) => {
-    setImages([...images, { ...newImage, id: images.length + 1 }])
+  const handleAddImage = (newImage: NewImage) => {
+    const fullImage: ImageType = {
+      ...newImage,
+      id: Date.now(), // hoặc dùng uuid
+      size: "0,5 MB", // hoặc lấy từ file
+      uploaded: new Date().toLocaleDateString(),
+    }
+
+    setImages((prev) => [...prev, fullImage])
   }
 
-  const handleDeleteImage = (id) => {
+  const handleDeleteImage = (id: number) => {
     setImages(images.filter((image) => image.id !== id))
   }
 
@@ -100,7 +121,7 @@ export default function ImageLibraryPage() {
     </DashboardShell>
   )
 }
-
+// @ts-ignore
 function ImageCard({ image, onDelete }) {
   const [showActions, setShowActions] = useState(false)
 
@@ -140,7 +161,7 @@ function ImageCard({ image, onDelete }) {
             {image.size} • {image.uploaded}
           </div>
           <div className="flex flex-wrap gap-1 pt-1">
-            {image.tags.map((tag, index) => (
+            {image.tags.map((tag?:string, index?: number) => (
               <div
                 key={index}
                 className="inline-flex items-center rounded-full bg-muted px-2 py-0.5 text-xs font-medium"
@@ -155,41 +176,57 @@ function ImageCard({ image, onDelete }) {
   )
 }
 
-function AddImageDialog({ onAddImage }) {
+function AddImageDialog({ onAddImage }: { onAddImage: (image: NewImage) => void }) {
   const [open, setOpen] = useState(false)
-  const [newImage, setNewImage] = useState({
+  const [newImage, setNewImage] = useState<{
+    name: string
+    url: string
+    tags: string[]
+    category : string
+  }>({
     name: "",
-    category: "Sản Phẩm",
+    url: "",
+    category :"",
     tags: [],
-    url: "/placeholder.svg?height=200&width=200",
-    size: "0,5 MB",
-    uploaded: new Date().toLocaleDateString(),
   })
   const [tagInput, setTagInput] = useState("")
 
-  const handleSubmit = (e) => {
+  const handleSubmit = (e: { preventDefault: () => void }) => {
     e.preventDefault()
-    onAddImage(newImage)
+
+    const fullImage = {
+      ...newImage,
+      id: Date.now(),
+      size: "0,5 MB",
+      uploaded: new Date().toLocaleDateString(),
+      category: typeof newImage.category === "string"
+          ? newImage.category
+          : newImage.category[0] || "Chưa phân loại", // fallback
+    }
+
+    onAddImage(fullImage)
+
+    // Reset form
     setNewImage({
       name: "",
       category: "Sản Phẩm",
       tags: [],
       url: "/placeholder.svg?height=200&width=200",
-      size: "0,5 MB",
-      uploaded: new Date().toLocaleDateString(),
     })
     setTagInput("")
     setOpen(false)
   }
 
+
   const handleAddTag = () => {
-    if (tagInput.trim() && !newImage.tags.includes(tagInput.trim())) {
-      setNewImage({ ...newImage, tags: [...newImage.tags, tagInput.trim()] })
+    const trimmed = tagInput.trim()
+    if (trimmed && !newImage.tags.includes(trimmed)) {
+      setNewImage({ ...newImage, tags: [...newImage.tags, trimmed] })
       setTagInput("")
     }
   }
 
-  const handleRemoveTag = (tagToRemove) => {
+  const handleRemoveTag = (tagToRemove: string) => {
     setNewImage({
       ...newImage,
       tags: newImage.tags.filter((tag) => tag !== tagToRemove),

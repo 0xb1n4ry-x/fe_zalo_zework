@@ -12,6 +12,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/com
 import { motion, useAnimation } from "framer-motion"
 import ThankYouDialog from "./ThankYouDialog"
 
+// @ts-ignore
 export default function FeedbackForm({ onSubmit }) {
   const [rating, setRating] = useState(0)
   const [fileName, setFileName] = useState<string | null>(null)

@@ -2,8 +2,11 @@
 
 import { Users, Calendar, FileText, Search, Settings, MessageSquare, UserPlus } from "lucide-react"
 import NavButton from "./NavButton"
-
-export default function NavigationSidebar({ activeNav, onNavChange }) {
+type NavigationSidebarProps = {
+    activeNav: string
+    onNavChange: (nav: string) => void
+}
+export default function NavigationSidebar({ activeNav, onNavChange }: NavigationSidebarProps) {
   return (
     <div className="w-16 flex flex-col items-center py-6 bg-white shadow-md z-10">
       <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center text-white font-bold mb-8">

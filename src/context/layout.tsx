@@ -1,6 +1,11 @@
+import { ReactNode } from "react";
 import { ContactsProvider } from './ContactsContext';
 
-export default function Layout({ children }) {
+type LayoutProps = {
+    children: ReactNode;
+};
+
+export default function Layout({ children }: LayoutProps) {
     return (
         <ContactsProvider>
             {children}

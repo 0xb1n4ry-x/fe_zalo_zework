@@ -158,7 +158,7 @@ export function EmployeeActivity() {
   })
 
   // Định dạng tooltip cho biểu đồ
-  const formatTooltip = (value, name) => {
+  const formatTooltip = (value: never, name: string) => {
     if (name === "messages") return [`${value} tin nhắn`, "Số lượng"]
     if (name === "responseTime") return [`${value} phút`, "Thời gian"]
     return [value, name]
@@ -238,7 +238,7 @@ export function EmployeeActivity() {
 
           {viewMode === "list" ? (
               <div className="space-y-4">
-                {sortedEmployees.map((employee, index) => (
+                {sortedEmployees.map((employee) => (
                     <div key={employee.id} className="flex items-center">
                       <Avatar className="h-9 w-9 mr-4">
                         <AvatarImage src={employee.avatar} alt={employee.name} />

@@ -37,7 +37,6 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import Cookies from "js-cookie"
 import { toast } from "@/hooks/use-toast"
 import { clearAuthData } from "@/utils/authUtils"
-import {data} from "framer-motion/m";
 
 interface DashboardNavProps {
   collapsed?: boolean
@@ -141,7 +140,7 @@ export function DashboardNav({ collapsed = false, onNavClick }: DashboardNavProp
       console.log("Đăng xuất với:", { token, sessionId })
 
       // Gọi API đăng xuất để vô hiệu hóa session từ server
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || ''}api/logout`, {
+       await fetch(`${process.env.NEXT_PUBLIC_API_URL || ''}api/logout`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -255,7 +254,7 @@ export function DashboardNav({ collapsed = false, onNavClick }: DashboardNavProp
 
       {
         try {
-          const user = JSON.parse(localStorage.getItem("user"))
+          const user = JSON.parse(localStorage.getItem("user") as string)
           const userId =  user.userId
           console.log(userId)
 
@@ -269,7 +268,7 @@ export function DashboardNav({ collapsed = false, onNavClick }: DashboardNavProp
 
           const data = await response.json();
           console.log(data)
-          const transformedData = data.map((account, index) => ({
+          const transformedData = data.map((account: { _id: never; display_name: never; phone_number: never; zaloAccountId: never; is_active: never; createdAt: string | number | Date; lastActiveAt: never; avatar: never; isAuthenticated: never; isDefault: never; zpw_sek: never; zpw_enk: never; imei: never }) => ({
             id: account._id,
             name: account.display_name,
             email: account.phone_number || "N/A",
@@ -306,7 +305,8 @@ export function DashboardNav({ collapsed = false, onNavClick }: DashboardNavProp
   }
 
 
-  const handleSelectAccount = (accountId: number) => {
+  // const handleSelectAccount = (accountId: number) => {
+  const handleSelectAccount = () => {
     setIsDialogOpen(false)
     localStorage.setItem("dataZalo", JSON.stringify(accounts));
     console.log("datazalo",JSON.parse(localStorage.getItem("dataZalo") as string))
@@ -373,6 +373,9 @@ export function DashboardNav({ collapsed = false, onNavClick }: DashboardNavProp
     )
   }
 
+
+
+  // @ts-ignore
   return (
       <div className="flex h-full flex-col">
         <div className="flex h-14 items-center border-b px-4">
@@ -607,19 +610,28 @@ export function DashboardNav({ collapsed = false, onNavClick }: DashboardNavProp
                 {accounts.length === 0 ? (
                     <div className="text-center py-4 text-muted-foreground">Không tìm thấy tài khoản nào.</div>
                 ) : (
-                    accounts.map((account: { id: React.Key | null | undefined; status: string | number | bigint | boolean | React.ReactElement<unknown, string | React.JSXElementConstructor<never>> | Iterable<React.ReactNode> | Promise<string | number | bigint | boolean | React.ReactPortal | React.ReactElement<unknown, string | React.JSXElementConstructor<any>> | Iterable<React.ReactNode> | null | undefined> | null | undefined; avatar: string | undefined; name: string | number | bigint | boolean | React.ReactElement<unknown, string | React.JSXElementConstructor<any>> | Iterable<React.ReactNode> | Promise<string | number | bigint | boolean | React.ReactPortal | React.ReactElement<unknown, string | React.JSXElementConstructor<any>> | Iterable<React.ReactNode> | null | undefined> | null | undefined; unreadCount: string | number | bigint | boolean | React.ReactElement<unknown, string | React.JSXElementConstructor<any>> | Iterable<React.ReactNode> | Promise<string | number | bigint | boolean | React.ReactPortal | React.ReactElement<unknown, string | React.JSXElementConstructor<any>> | Iterable<React.ReactNode> | null | undefined> | null | undefined; department: string | number | bigint | boolean | React.ReactElement<unknown, string | React.JSXElementConstructor<any>> | Iterable<React.ReactNode> | React.ReactPortal | Promise<string | number | bigint | boolean | React.ReactPortal | React.ReactElement<unknown, string | React.JSXElementConstructor<any>> | Iterable<React.ReactNode> | null | undefined> | null | undefined; lastActive: string | number | bigint | boolean | React.ReactElement<unknown, string | React.JSXElementConstructor<any>> | Iterable<React.ReactNode> | React.ReactPortal | Promise<string | number | bigint | boolean | React.ReactPortal | React.ReactElement<unknown, string | React.JSXElementConstructor<any>> | Iterable<React.ReactNode> | null | undefined> | null | undefined }) => (
+                    accounts.map((account: { id: React.Key | null | undefined; // @ts-ignore
+                      status?: string ;
+                      avatar?: string | undefined;
+
+                      name?: string;
+                      unreadCount? : number | undefined;
+                      department?: string | undefined ;
+                      lastActive?: string  }) => (
                         <div
                             key={account.id}
                             className={cn(
                                 "flex items-center justify-between p-3 rounded-lg border cursor-pointer hover:bg-muted transition-colors",
                                 account.status === "Tạm dừng" && "opacity-60",
                             )}
-                            onClick={() => account.status === "Hoạt động" && handleSelectAccount(account.id)}
+                            onClick={() => account.status === "Hoạt động" && handleSelectAccount()}
                         >
                           <div className="flex items-center gap-3">
                             <Avatar className="h-10 w-10">
-                              <AvatarImage src={account.avatar} alt={account.name} />
-                              <AvatarFallback>{account.name.charAt(0)}</AvatarFallback>
+
+                              <AvatarImage src={account.avatar}  />
+
+                              <AvatarFallback>{account.name}</AvatarFallback>
                             </Avatar>
                             <div>
                               <div className="font-medium flex items-center gap-2">
@@ -630,11 +642,16 @@ export function DashboardNav({ collapsed = false, onNavClick }: DashboardNavProp
                                 {/*    </Badge>*/}
                                 {/*)}*/}
                               </div>
-                              <div className="text-xs text-muted-foreground">{account.department}</div>
+
+                              <div className="text-xs text-muted-foreground">
+                                // @ts-ignore
+                                {account.department}
+                              </div>
                               <div className="text-xs text-muted-foreground">Hoạt động: {account.lastActive}</div>
                             </div>
                           </div>
                           <div>
+
                             <Badge variant={account.status === "Hoạt động" ? "success" : "secondary"}>{account.status}</Badge>
                           </div>
                         </div>

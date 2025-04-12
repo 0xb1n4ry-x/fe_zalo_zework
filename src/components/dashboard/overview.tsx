@@ -144,7 +144,7 @@ export function Overview() {
   }
 
   // Định dạng tooltip
-  const formatTooltip = (value) => {
+  const formatTooltip = (value: { toLocaleString: () => any }) => {
     return [`${value.toLocaleString()} tin nhắn`, "Số lượng"]
   }
 

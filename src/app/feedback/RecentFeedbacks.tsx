@@ -16,7 +16,7 @@ interface Feedback {
   date: string
 }
 
-function SampleNextArrow(props) {
+function SampleNextArrow(props: { onClick: any }) {
   const { onClick } = props
   return (
       <div className="custom-arrow custom-arrow-next" onClick={onClick}>
@@ -25,7 +25,7 @@ function SampleNextArrow(props) {
   )
 }
 
-function SamplePrevArrow(props) {
+function SamplePrevArrow(props: { onClick: any }) {
   const { onClick } = props
   return (
       <div className="custom-arrow custom-arrow-prev" onClick={onClick}>
@@ -121,8 +121,8 @@ export default function RecentFeedbacks() {
     speed: 500,
     slidesToShow: 3,
     slidesToScroll: 1,
-    nextArrow: <SampleNextArrow />,
-    prevArrow: <SamplePrevArrow />,
+    nextArrow: <SampleNextArrow onClick={undefined} />,
+    prevArrow: <SamplePrevArrow onClick={undefined} />,
     responsive: [
       {
         breakpoint: 1024,

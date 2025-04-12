@@ -3,12 +3,17 @@ import { createContext, useContext, useState, useEffect } from 'react';
 import {fetchChats} from '@/lib/api';
 
 
-const ContactsContext = createContext("light");
-
-export function ContactsProvider({ children }) {
-    const [contacts, setContacts] = useState("");
+type ContactsContextType = {
+    contacts: any; // nên thay `any` bằng kiểu cụ thể nếu có
+    isLoading: boolean;
+    error: string | null;
+    setContacts: React.Dispatch<React.SetStateAction<any>>;
+};
+const ContactsContext = createContext<ContactsContextType | undefined>(undefined);
+export function ContactsProvider({ children }: { children: React.ReactNode }) {
+    const [contacts, setContacts] = useState<any>([]);
     const [isLoading, setIsLoading] = useState(true);
-    const [error, setError] = useState(null);
+    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         const loadContacts = async () => {
@@ -16,23 +21,17 @@ export function ContactsProvider({ children }) {
                 setIsLoading(true);
                 const fetchedContacts = await fetchChats();
                 setContacts(fetchedContacts);
-                // Optionally store in localStorage for persistence between page refreshes
                 localStorage.setItem('cachedContacts', JSON.stringify(fetchedContacts));
-
-                console.log(localStorage.getItem('cachedGroups'));
-            } catch (err) {
+            } catch (err: any) {
                 console.error('Failed to load contacts:', err);
                 setError(err.message);
 
-                // Try to load from cache if available
                 const cached = localStorage.getItem('cachedContacts');
-                const cachedGroups = localStorage.getItem('cachedGroups');
-                if (cached && cachedGroups ) {
+                if (cached) {
                     try {
                         setContacts(JSON.parse(cached));
-
                     } catch (e) {
-                        console.error('Failed to load contacts:', err);
+                        console.error('Failed to parse cached contacts:', e);
                     }
                 }
             } finally {
@@ -50,6 +49,11 @@ export function ContactsProvider({ children }) {
     );
 }
 
+
 export function useContacts() {
-    return useContext(ContactsContext);
+    const context = useContext(ContactsContext);
+    if (context === undefined) {
+        throw new Error("useContacts must be used within a ContactsProvider");
+    }
+    return context;
 }

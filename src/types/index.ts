@@ -3,6 +3,7 @@ export interface QRCodeData {
     qrImage?: string
     sessionId?: string
     message?: string
+    status?: string
 }
 
 export interface UserData {

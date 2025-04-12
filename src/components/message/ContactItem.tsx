@@ -12,7 +12,10 @@ interface Tag {
 interface ContactItemProps {
   contact: {
     name: string
-    lastActive: string
+    avatar: string
+    isActive : number
+    displayName: string
+    lastActionTime: number
     online: boolean
     tags?: Tag[]
   }
@@ -22,7 +25,7 @@ interface ContactItemProps {
   isCollapsed?: boolean
 }
 
-export default function ContactItem({ contact, index, isSelected, onClick, isCollapsed }: ContactItemProps) {
+export default function ContactItem({ contact, isSelected, onClick, isCollapsed }: ContactItemProps) {
   const contactAvatar = (
     <div className="relative">
       <div

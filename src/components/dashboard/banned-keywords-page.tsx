@@ -20,10 +20,22 @@ import { Label } from "@/components/ui/label"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Plus, Search, Trash2 } from "lucide-react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+type Keyword = {
+  id: number
+  word: string
+  category: string
+  addedBy: string
+  dateAdded: string
+  violations: string
+}
+
+type AddKeywordDialogProps = {
+  onAddKeyword: (newKeyword: Keyword) => void
+}
 
 export default function BannedKeywordsPage() {
   const [keywords, setKeywords] = useState([...initialKeywords])
-  const [violations, setViolations] = useState([...initialViolations])
+  const [violations] = useState([...initialViolations])
   const [searchQuery, setSearchQuery] = useState("")
 
   const filteredKeywords = keywords.filter(
@@ -32,11 +44,20 @@ export default function BannedKeywordsPage() {
       keyword.category.toLowerCase().includes(searchQuery.toLowerCase()),
   )
 
-  const handleAddKeyword = (newKeyword) => {
-    setKeywords([...keywords, { ...newKeyword, id: keywords.length + 1 }])
-  }
+  const handleAddKeyword = (keyword: { word: string }) => {
+    const fullKeyword = {
+      id: Date.now(),
+      word: keyword.word,
+      category: "Uncategorized",
+      addedBy: "Admin",
+      dateAdded: new Date().toISOString(),
+      violations: "None",
+    };
 
-  const handleDeleteKeyword = (id) => {
+    setKeywords((prev) => [...prev, fullKeyword]);
+  };
+
+  const handleDeleteKeyword = (id: number) => {
     setKeywords(keywords.filter((keyword) => keyword.id !== id))
   }
 
@@ -182,7 +203,9 @@ export default function BannedKeywordsPage() {
   )
 }
 
-function AddKeywordDialog({ onAddKeyword }) {
+
+function AddKeywordDialog({ onAddKeyword }: { onAddKeyword: (keyword: { word: string }) => void }) {
+
   const [open, setOpen] = useState(false)
   const [newKeyword, setNewKeyword] = useState({
     word: "",
@@ -192,7 +215,7 @@ function AddKeywordDialog({ onAddKeyword }) {
     violations: "0",
   })
 
-  const handleSubmit = (e) => {
+  const handleSubmit = (e: { preventDefault: () => void }) => {
     e.preventDefault()
     onAddKeyword(newKeyword)
     setNewKeyword({

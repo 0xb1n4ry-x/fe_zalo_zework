@@ -81,14 +81,14 @@ function PayOSConfigForm() {
   const [isSaving, setIsSaving] = useState(false)
   const [showSuccessMessage, setShowSuccessMessage] = useState(false)
 
-  const handleChange = (field, value) => {
+  const handleChange = (field: string, value: string) => {
     setConfig({
       ...config,
       [field]: value,
     })
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = (e: { preventDefault: () => void }) => {
     e.preventDefault()
     setIsSaving(true)
 

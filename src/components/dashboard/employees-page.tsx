@@ -1,9 +1,9 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { useState, useEffect, JSXElementConstructor, Key, ReactElement, ReactNode, ReactPortal, SetStateAction} from "react"
+import {Button} from "@/components/ui/button"
+import {Input} from "@/components/ui/input"
+import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "@/components/ui/table"
 import {
   Dialog,
   DialogContent,
@@ -21,27 +21,27 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Label } from "@/components/ui/label"
-import { DashboardShell } from "@/components/dashboard/dashboard-shell"
-import { DashboardHeader } from "@/components/dashboard/dashboard-header"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Edit, MoreHorizontal, Search, Trash2, UserPlus, KeyRound } from "lucide-react"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Badge } from "@/components/ui/badge"
+import {Label} from "@/components/ui/label"
+import {DashboardShell} from "@/components/dashboard/dashboard-shell"
+import {DashboardHeader} from "@/components/dashboard/dashboard-header"
+import {Avatar, AvatarFallback, AvatarImage} from "@/components/ui/avatar"
+import {Edit, MoreHorizontal, Search, Trash2, UserPlus, KeyRound} from "lucide-react"
+import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select"
+import {Badge} from "@/components/ui/badge"
 
 // Thêm biến MAX_EMPLOYEES ở đầu file, sau các import và trước các biến khác
 const MAX_EMPLOYEES = 20 // Số lượng nhân viên tối đa có thể thêm vào hệ thống
 
 // Thêm danh sách các quyền hệ thống
 const permissions = [
-  { id: "view_dashboard", name: "Xem bảng điều khiển", description: "Cho phép xem trang bảng điều khiển" },
-  { id: "manage_messages", name: "Quản lý tin nhắn", description: "Cho phép xem và trả lời tin nhắn" },
-  { id: "manage_customers", name: "Quản lý khách hàng", description: "Cho phép xem và chỉnh sửa thông tin khách hàng" },
-  { id: "manage_templates", name: "Quản lý mẫu tin nhắn", description: "Cho phép tạo và chỉnh sửa mẫu tin nhắn" },
-  { id: "manage_employees", name: "Quản lý nhân viên", description: "Cho phép thêm, sửa, xóa nhân viên" },
-  { id: "view_reports", name: "Xem báo cáo", description: "Cho phép xem báo cáo và thống kê" },
-  { id: "manage_settings", name: "Quản lý cài đặt", description: "Cho phép thay đổi cài đặt hệ thống" },
-  { id: "manage_billing", name: "Quản lý thanh toán", description: "Cho phép xem và quản lý thông tin thanh toán" },
+  {id: "view_dashboard", name: "Xem bảng điều khiển", description: "Cho phép xem trang bảng điều khiển"},
+  {id: "manage_messages", name: "Quản lý tin nhắn", description: "Cho phép xem và trả lời tin nhắn"},
+  {id: "manage_customers", name: "Quản lý khách hàng", description: "Cho phép xem và chỉnh sửa thông tin khách hàng"},
+  {id: "manage_templates", name: "Quản lý mẫu tin nhắn", description: "Cho phép tạo và chỉnh sửa mẫu tin nhắn"},
+  {id: "manage_employees", name: "Quản lý nhân viên", description: "Cho phép thêm, sửa, xóa nhân viên"},
+  {id: "view_reports", name: "Xem báo cáo", description: "Cho phép xem báo cáo và thống kê"},
+  {id: "manage_settings", name: "Quản lý cài đặt", description: "Cho phép thay đổi cài đặt hệ thống"},
+  {id: "manage_billing", name: "Quản lý thanh toán", description: "Cho phép xem và quản lý thông tin thanh toán"},
 ]
 
 // Cập nhật dữ liệu mẫu cho nhân viên để bao gồm quyền
@@ -145,16 +145,53 @@ const initialEmployees = [
 ]
 
 const initialDepartments = [
-  { id: 1, name: "Kỹ Thuật" },
-  { id: 2, name: "Kinh Doanh" },
-  { id: 3, name: "Nhân Sự" },
-  { id: 4, name: "Tài Chính" },
-  { id: 5, name: "Marketing" },
+  {id: 1, name: "Kỹ Thuật"},
+  {id: 2, name: "Kinh Doanh"},
+  {id: 3, name: "Nhân Sự"},
+  {id: 4, name: "Tài Chính"},
+  {id: 5, name: "Marketing"},
 ]
 
-// Cập nhật hàm AddEmployeeDialog để thêm mật khẩu và quyền
-function AddEmployeeDialog({ onAddEmployee, departments }) {
+interface Employee {
+  id: number;
+  name: string;
+  email: string;
+  employeeId: string;
+  department: string;
+  position: string;
+  joinDate: string;
+  phone: string;
+  avatar: string;
+  permissions: string[];
+}
+interface Department {
+  id: number | string
+  name: string
+}
+
+interface NewEmployee {
+  name: string
+  email: string
+  employeeId: string
+  department: string
+  position: string
+  joinDate: string
+  phone: string
+  password: string
+  avatar: string
+  permissions: string[]
+}
+
+interface AddEmployeeDialogProps {
+  onAddEmployee: (employee: NewEmployee) => void
+  departments: Department[]
+}
+
+
+
+function AddEmployeeDialog({ onAddEmployee, departments }: AddEmployeeDialogProps) {
   const [open, setOpen] = useState(false)
+
   const [newEmployee, setNewEmployee] = useState({
     name: "",
     email: "",
@@ -167,11 +204,10 @@ function AddEmployeeDialog({ onAddEmployee, departments }) {
     avatar: "/placeholder.svg?height=32&width=32",
     permissions: ["view_dashboard"], // Quyền mặc định
   })
+  const [selectedPermissions, setSelectedPermissions] = useState<string[]>([]);
 
-  // State để theo dõi các quyền được chọn
-  const [selectedPermissions, setSelectedPermissions] = useState(["view_dashboard"])
 
-  const handlePermissionChange = (permissionId) => {
+  const handlePermissionChange = (permissionId: string) => {
     setSelectedPermissions((prev) => {
       if (prev.includes(permissionId)) {
         return prev.filter((id) => id !== permissionId)
@@ -181,7 +217,7 @@ function AddEmployeeDialog({ onAddEmployee, departments }) {
     })
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = (e: { preventDefault: () => void }) => {
     e.preventDefault()
     // Cập nhật quyền từ state vào nhân viên mới
     const employeeWithPermissions = {
@@ -212,14 +248,14 @@ function AddEmployeeDialog({ onAddEmployee, departments }) {
     for (let i = 0; i < 10; i++) {
       password += chars.charAt(Math.floor(Math.random() * chars.length))
     }
-    setNewEmployee({ ...newEmployee, password })
+    setNewEmployee({...newEmployee, password})
   }
 
   return (
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogTrigger asChild>
           <Button>
-            <UserPlus className="mr-2 h-4 w-4" /> Thêm Nhân Viên
+            <UserPlus className="mr-2 h-4 w-4"/> Thêm Nhân Viên
           </Button>
         </DialogTrigger>
         <DialogContent className="sm:max-w-[650px]">
@@ -235,7 +271,7 @@ function AddEmployeeDialog({ onAddEmployee, departments }) {
                   <Input
                       id="name"
                       value={newEmployee.name}
-                      onChange={(e) => setNewEmployee({ ...newEmployee, name: e.target.value })}
+                      onChange={(e) => setNewEmployee({...newEmployee, name: e.target.value})}
                       required
                   />
                 </div>
@@ -244,7 +280,7 @@ function AddEmployeeDialog({ onAddEmployee, departments }) {
                   <Input
                       id="employeeId"
                       value={newEmployee.employeeId}
-                      onChange={(e) => setNewEmployee({ ...newEmployee, employeeId: e.target.value })}
+                      onChange={(e) => setNewEmployee({...newEmployee, employeeId: e.target.value})}
                       required
                   />
                 </div>
@@ -257,7 +293,7 @@ function AddEmployeeDialog({ onAddEmployee, departments }) {
                       id="email"
                       type="email"
                       value={newEmployee.email}
-                      onChange={(e) => setNewEmployee({ ...newEmployee, email: e.target.value })}
+                      onChange={(e) => setNewEmployee({...newEmployee, email: e.target.value})}
                       required
                   />
                 </div>
@@ -266,7 +302,7 @@ function AddEmployeeDialog({ onAddEmployee, departments }) {
                   <Input
                       id="phone"
                       value={newEmployee.phone}
-                      onChange={(e) => setNewEmployee({ ...newEmployee, phone: e.target.value })}
+                      onChange={(e) => setNewEmployee({...newEmployee, phone: e.target.value})}
                   />
                 </div>
               </div>
@@ -274,13 +310,13 @@ function AddEmployeeDialog({ onAddEmployee, departments }) {
               <div className="grid grid-cols-2 gap-4">
                 <div className="grid gap-2">
                   <Label htmlFor="department">Phòng Ban</Label>
-                  <Select onValueChange={(value) => setNewEmployee({ ...newEmployee, department: value })} required>
+                  <Select onValueChange={(value) => setNewEmployee({...newEmployee, department: value})} required>
                     <SelectTrigger id="department">
-                      <SelectValue placeholder="Chọn phòng ban" />
+                      <SelectValue placeholder="Chọn phòng ban"/>
                     </SelectTrigger>
                     <SelectContent>
-                      {departments.map((dept) => (
-                          <SelectItem key={dept.id} value={dept.name}>
+                      {departments.map((dept: { id: Key | null | undefined; name?: string }) => (
+                          <SelectItem key={dept.id} value={dept.name ?? ""}>
                             {dept.name}
                           </SelectItem>
                       ))}
@@ -292,7 +328,7 @@ function AddEmployeeDialog({ onAddEmployee, departments }) {
                   <Input
                       id="position"
                       value={newEmployee.position}
-                      onChange={(e) => setNewEmployee({ ...newEmployee, position: e.target.value })}
+                      onChange={(e) => setNewEmployee({...newEmployee, position: e.target.value})}
                       required
                   />
                 </div>
@@ -305,7 +341,7 @@ function AddEmployeeDialog({ onAddEmployee, departments }) {
                       id="joinDate"
                       type="date"
                       value={newEmployee.joinDate}
-                      onChange={(e) => setNewEmployee({ ...newEmployee, joinDate: e.target.value })}
+                      onChange={(e) => setNewEmployee({...newEmployee, joinDate: e.target.value})}
                       required
                   />
                 </div>
@@ -316,7 +352,7 @@ function AddEmployeeDialog({ onAddEmployee, departments }) {
                         id="password"
                         type="text"
                         value={newEmployee.password}
-                        onChange={(e) => setNewEmployee({ ...newEmployee, password: e.target.value })}
+                        onChange={(e) => setNewEmployee({...newEmployee, password: e.target.value})}
                         required
                     />
                     <Button type="button" variant="outline" onClick={generateRandomPassword}>
@@ -359,19 +395,29 @@ function AddEmployeeDialog({ onAddEmployee, departments }) {
 }
 
 // Cập nhật hàm EditEmployeeDialog để thêm quyền
-function EditEmployeeDialog({ employee, isOpen, onClose, onUpdate }) {
-  const [editedEmployee, setEditedEmployee] = useState(null)
-  const [selectedPermissions, setSelectedPermissions] = useState([])
+interface EditEmployeeDialogProps {
+  employee: Employee | null
+  isOpen: boolean
+  onClose: () => void
+  onUpdate: (employee: Employee) => void
+}
+
+function EditEmployeeDialog({ employee, isOpen, onClose, onUpdate }: EditEmployeeDialogProps) {
+
+  const [editedEmployee, setEditedEmployee] = useState<Employee>()
+  const [selectedPermissions, setSelectedPermissions] = useState<string[]>([])
 
   useEffect(() => {
     if (employee) {
-      setEditedEmployee({ ...employee })
+      setEditedEmployee({...employee})
       setSelectedPermissions(employee.permissions || [])
     }
   }, [employee])
 
-  const handlePermissionChange = (permissionId) => {
+  const handlePermissionChange = (permissionId: string) => {
+
     setSelectedPermissions((prev) => {
+
       if (prev.includes(permissionId)) {
         return prev.filter((id) => id !== permissionId)
       } else {
@@ -380,10 +426,12 @@ function EditEmployeeDialog({ employee, isOpen, onClose, onUpdate }) {
     })
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = (e: { preventDefault: () => void }) => {
     e.preventDefault()
     if (editedEmployee) {
+
       onUpdate({
+
         ...editedEmployee,
         permissions: selectedPermissions,
       })
@@ -391,6 +439,7 @@ function EditEmployeeDialog({ employee, isOpen, onClose, onUpdate }) {
   }
 
   if (!employee || !editedEmployee) return null
+
 
   return (
       <Dialog open={isOpen} onOpenChange={onClose}>
@@ -407,7 +456,7 @@ function EditEmployeeDialog({ employee, isOpen, onClose, onUpdate }) {
                   <Input
                       id="edit-name"
                       value={editedEmployee.name}
-                      onChange={(e) => setEditedEmployee({ ...editedEmployee, name: e.target.value })}
+                      onChange={(e) => setEditedEmployee({...editedEmployee, name: e.target.value})}
                       required
                   />
                 </div>
@@ -416,7 +465,7 @@ function EditEmployeeDialog({ employee, isOpen, onClose, onUpdate }) {
                   <Input
                       id="edit-employeeId"
                       value={editedEmployee.employeeId}
-                      onChange={(e) => setEditedEmployee({ ...editedEmployee, employeeId: e.target.value })}
+                      onChange={(e) => setEditedEmployee({...editedEmployee, employeeId: e.target.value})}
                       required
                       disabled
                   />
@@ -430,7 +479,7 @@ function EditEmployeeDialog({ employee, isOpen, onClose, onUpdate }) {
                       id="edit-email"
                       type="email"
                       value={editedEmployee.email}
-                      onChange={(e) => setEditedEmployee({ ...editedEmployee, email: e.target.value })}
+                      onChange={(e) => setEditedEmployee({...editedEmployee, email: e.target.value})}
                       required
                   />
                 </div>
@@ -439,7 +488,7 @@ function EditEmployeeDialog({ employee, isOpen, onClose, onUpdate }) {
                   <Input
                       id="edit-phone"
                       value={editedEmployee.phone}
-                      onChange={(e) => setEditedEmployee({ ...editedEmployee, phone: e.target.value })}
+                      onChange={(e) => setEditedEmployee({...editedEmployee, phone: e.target.value})}
                   />
                 </div>
               </div>
@@ -448,11 +497,11 @@ function EditEmployeeDialog({ employee, isOpen, onClose, onUpdate }) {
                 <div className="grid gap-2">
                   <Label htmlFor="edit-department">Phòng Ban</Label>
                   <Select
-                      onValueChange={(value) => setEditedEmployee({ ...editedEmployee, department: value })}
+                      onValueChange={(value) => setEditedEmployee({...editedEmployee, department: value})}
                       defaultValue={editedEmployee.department}
                   >
                     <SelectTrigger id="edit-department">
-                      <SelectValue placeholder="Chọn phòng ban" />
+                      <SelectValue placeholder="Chọn phòng ban"/>
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="Hỗ Trợ Khách Hàng">Hỗ Trợ Khách Hàng</SelectItem>
@@ -470,7 +519,7 @@ function EditEmployeeDialog({ employee, isOpen, onClose, onUpdate }) {
                   <Input
                       id="edit-position"
                       value={editedEmployee.position}
-                      onChange={(e) => setEditedEmployee({ ...editedEmployee, position: e.target.value })}
+                      onChange={(e) => setEditedEmployee({...editedEmployee, position: e.target.value})}
                       required
                   />
                 </div>
@@ -482,7 +531,7 @@ function EditEmployeeDialog({ employee, isOpen, onClose, onUpdate }) {
                     id="edit-joinDate"
                     type="date"
                     value={editedEmployee.joinDate}
-                    onChange={(e) => setEditedEmployee({ ...editedEmployee, joinDate: e.target.value })}
+                    onChange={(e) => setEditedEmployee({...editedEmployee, joinDate: e.target.value})}
                     required
                 />
               </div>
@@ -494,7 +543,7 @@ function EditEmployeeDialog({ employee, isOpen, onClose, onUpdate }) {
                       <div key={permission.id} className="flex items-start space-x-2">
                         <input
                             type="checkbox"
-                            id={`edit-perm-${permission.id}`}
+                            id={`edit-perm-${permission.id}`} // ✅ đã đóng )
                             checked={selectedPermissions.includes(permission.id)}
                             onChange={() => handlePermissionChange(permission.id)}
                             className="mt-1"
@@ -520,7 +569,16 @@ function EditEmployeeDialog({ employee, isOpen, onClose, onUpdate }) {
 }
 
 // Thêm hàm ResetPasswordDialog để đặt lại mật khẩu
-function ResetPasswordDialog({ employee, isOpen, onClose, onResetPassword }) {
+interface ResetPasswordDialogProps {
+  employee: {
+    id: number
+    name: string
+  } | null
+  isOpen: boolean
+  onClose: () => void
+  onResetPassword: (id: number, newPassword: string) => void
+}
+function ResetPasswordDialog({employee, isOpen, onClose, onResetPassword}: ResetPasswordDialogProps) {
   const [newPassword, setNewPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
   const [error, setError] = useState("")
@@ -543,7 +601,7 @@ function ResetPasswordDialog({ employee, isOpen, onClose, onResetPassword }) {
     setConfirmPassword(password)
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = (e: { preventDefault: () => void }) => {
     e.preventDefault()
 
     if (newPassword !== confirmPassword) {
@@ -556,8 +614,11 @@ function ResetPasswordDialog({ employee, isOpen, onClose, onResetPassword }) {
       return
     }
 
-    onResetPassword(employee.id, newPassword)
-    onClose()
+    if (!employee) return;
+
+    onResetPassword(employee.id, newPassword);
+    onClose();
+
   }
 
   if (!employee) return null
@@ -613,29 +674,31 @@ function ResetPasswordDialog({ employee, isOpen, onClose, onResetPassword }) {
 export default function EmployeesPage() {
   const [employees, setEmployees] = useState([...initialEmployees])
   const [searchQuery, setSearchQuery] = useState("")
-  const [editingEmployee, setEditingEmployee] = useState(null)
+  const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const [isResetPasswordDialogOpen, setIsResetPasswordDialogOpen] = useState(false)
-  const [selectedEmployee, setSelectedEmployee] = useState(null)
+  const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null)
 
-  // Các hàm xử lý khác...
-
-  const handleEditEmployee = (employee) => {
+  const handleEditEmployee = (employee: Employee) => {
     setEditingEmployee(employee)
     setIsEditDialogOpen(true)
   }
 
-  const handleUpdateEmployee = (updatedEmployee) => {
-    setEmployees(employees.map((emp) => (emp.id === updatedEmployee.id ? updatedEmployee : emp)))
-    setIsEditDialogOpen(false)
-  }
 
-  const handleResetPassword = (employee) => {
+  const handleUpdateEmployee = (updatedEmployee: Employee) => {
+    setEmployees((prev) =>
+        prev.map((emp) =>
+            emp.id === updatedEmployee.id ? { ...emp, ...updatedEmployee } : emp
+        )
+    );
+    setIsEditDialogOpen(false);
+  };
+  const handleResetPassword = (employee: Employee) => {
     setSelectedEmployee(employee)
     setIsResetPasswordDialogOpen(true)
   }
 
-  const handlePasswordReset = (employeeId, newPassword) => {
+  const handlePasswordReset = (employeeId: any, newPassword: any) => {
     // Trong thực tế, bạn sẽ gửi yêu cầu đặt lại mật khẩu đến API
     console.log(`Đặt lại mật khẩu cho nhân viên ID ${employeeId}: ${newPassword}`)
     // Hiển thị thông báo thành công (trong thực tế)
@@ -649,16 +712,14 @@ export default function EmployeesPage() {
   )
 
   // Cập nhật hàm handleAddEmployee để kiểm tra số lượng nhân viên tối đa
-  const handleAddEmployee = (newEmployee) => {
-    if (employees.length >= MAX_EMPLOYEES) {
-      // Trong thực tế, bạn có thể hiển thị một thông báo lỗi ở đây
-      alert("Đã đạt số lượng nhân viên tối đa. Không thể thêm nhân viên mới.")
-      return
+  function handleAddEmployee(newEmployee: NewEmployee) {
+    const newWithId = {
+      ...newEmployee,
+      id: employees.length + 1,
     }
-    setEmployees([...employees, { ...newEmployee, id: employees.length + 1 }])
+    setEmployees([...employees, newWithId])
   }
-
-  const handleDeleteEmployee = (id) => {
+  const handleDeleteEmployee = (id: number) => {
     setEmployees(employees.filter((employee) => employee.id !== id))
   }
 
@@ -789,10 +850,16 @@ export default function EmployeesPage() {
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end">
                                 <DropdownMenuLabel>Thao tác</DropdownMenuLabel>
-                                <DropdownMenuItem onClick={() => handleEditEmployee(employee)}>
+
+                                <DropdownMenuItem onClick={() =>
+
+                                    handleEditEmployee(employee)}>
                                   <Edit className="mr-2 h-4 w-4" /> Chỉnh sửa
                                 </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => handleResetPassword(employee)}>
+
+                                <DropdownMenuItem onClick={() =>
+
+                                    handleResetPassword(employee)}>
                                   <KeyRound className="mr-2 h-4 w-4" /> Đặt lại mật khẩu
                                 </DropdownMenuItem>
                                 <DropdownMenuSeparator />

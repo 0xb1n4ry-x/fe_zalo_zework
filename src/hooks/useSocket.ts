@@ -1,8 +1,11 @@
 // hooks/useSocket.js
 import { useEffect, useRef } from "react";
-
-export default function useSocket({ userId, onMessage }) {
-    const socketRef = useRef(null);
+interface UseSocketProps {
+    userId: string;
+    onMessage: (message: any) => void;
+}
+export default function useSocket({ userId, onMessage }: UseSocketProps) {
+    const socketRef = useRef<WebSocket | null>(null); //
 
     useEffect(() => {
         if (!userId) return;
@@ -40,7 +43,7 @@ export default function useSocket({ userId, onMessage }) {
     }, [userId]);
 
     return {
-        sendMessage: (data) => {
+        sendMessage: (data:any) => {
             if (socketRef.current?.readyState === WebSocket.OPEN) {
                 socketRef.current.send(JSON.stringify(data));
             }

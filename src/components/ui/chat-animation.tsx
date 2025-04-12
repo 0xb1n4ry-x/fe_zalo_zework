@@ -14,7 +14,7 @@ interface Reaction {
 interface Message {
     id: number
     text: string
-    sender: "user" | "bot"
+    sender:string
     reactions: Reaction[]
     isPinned: boolean
     isDeleted: boolean
@@ -215,10 +215,11 @@ export function ChatAnimation({ userInfo }: { userInfo: UserInfo }) {
                 msg.id === id
                     ? {
                         ...msg,
-                        deleteTimeout: msg.deleteTimeout && clearInterval(msg.deleteTimeout),
+                        isDeleted: false,
+                        deleteTimeout: undefined // hoặc giữ nguyên msg.deleteTimeout nếu cần
                     }
-                    : msg,
-            ),
+                    : msg
+            )
         )
         setPendingDeleteMessages((prev) => prev.filter((msgId) => msgId !== id))
         setDeleteCountdowns((prev) => {

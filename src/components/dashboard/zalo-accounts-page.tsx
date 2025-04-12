@@ -1,33 +1,32 @@
 "use client"
 
-import {useEffect, useState} from "react"
-import { Button } from "@/components/ui/button"
-import {QRCodeLogin} from"@/app/mainchat/QRCodeLogin"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { DashboardShell } from "@/components/dashboard/dashboard-shell"
-import { DashboardHeader } from "@/components/dashboard/dashboard-header"
+import {JSXElementConstructor, Key, ReactElement, ReactNode, ReactPortal, useEffect, useState} from "react"
+import {Button} from "@/components/ui/button"
+import {QRCodeLogin} from "@/app/mainchat/QRCodeLogin"
+import {Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle} from "@/components/ui/card"
+import {Input} from "@/components/ui/input"
+import {Label} from "@/components/ui/label"
+import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "@/components/ui/table"
+import {DashboardShell} from "@/components/dashboard/dashboard-shell"
+import {DashboardHeader} from "@/components/dashboard/dashboard-header"
 import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
-import { Switch } from "@/components/ui/switch"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Badge } from "@/components/ui/badge"
+import {Switch} from "@/components/ui/switch"
+import {Tabs, TabsContent, TabsList, TabsTrigger} from "@/components/ui/tabs"
+import {Avatar, AvatarFallback, AvatarImage} from "@/components/ui/avatar"
+import {Badge} from "@/components/ui/badge"
 import {
   AlertCircle,
   Check,
   Copy,
   ExternalLink,
-  LinkIcon,
+
   Link2OffIcon as LinkOff,
   MoreHorizontal,
   Plus,
@@ -36,7 +35,7 @@ import {
   Settings,
   Trash2,
 } from "lucide-react"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import {Alert, AlertDescription, AlertTitle} from "@/components/ui/alert"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -45,17 +44,36 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import {getZaloAccounts} from "@/lib/api";
-import {data} from "framer-motion/m";
+
+interface acc {
+  id: string,
+  name: string,
+  email: string,
+  zaloId: string,
+  department: string,// Default department since API doesn't provide it
+  status?: string,
+  linkedDate: string,
+  lastActive: string,
+  avatar: string,
+  // Additional data from API
+  isAuthenticated: boolean,
+  isDefault: boolean,
+  userId: string;
+  username: string;
+  platform: string;
+  token: string;
+
+}
 
 export default function ZaloAccountsPage() {
   // State for real Zalo accounts data
-  const [accounts, setAccounts] = useState([])
+  const [accounts, setAccounts] = useState<acc[]>([]) // ban đầu là mảng rỗng
+
   const [searchQuery, setSearchQuery] = useState("")
   const [showConnectGuide, setShowConnectGuide] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   // State to track current user ID - in a real app, this would come from your auth system
-  const [currentUserId, setCurrentUserId] = useState("")
+  const [currentUserId] = useState("")
 
   // Fetch Zalo accounts data when component mounts
   useEffect(() => {
@@ -65,20 +83,31 @@ export default function ZaloAccountsPage() {
 
         {
           try {
-            const user = JSON.parse(localStorage.getItem("user"))
-            const userId =  user.userId
+            const user = JSON.parse(localStorage.getItem("user") as string)
+            const userId = user.userId
 
             const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}api/get-account-zalo`, {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
               },
-              body: JSON.stringify({ userId }),
+              body: JSON.stringify({userId}),
             });
 
             const data = await response.json();
             console.log(data)
-            const transformedData = data.map((account, index) => ({
+            const transformedData = data.map((account: {
+              _id: never;
+              display_name: never;
+              phone_number: never;
+              zaloAccountId: never;
+              is_active: never;
+              createdAt: string | number | Date;
+              lastActiveAt: never;
+              avatar: never;
+              isAuthenticated: never;
+              isDefault: never
+            }) => ({
               id: account._id,
               name: account.display_name,
               email: account.phone_number || "N/A",
@@ -95,8 +124,7 @@ export default function ZaloAccountsPage() {
 
             setAccounts(transformedData)
             return data.accounts || [];
-          }
-          catch (error) {
+          } catch (error) {
             console.error('Error fetching Zalo accounts data from backend:', error);
             return []; // Return empty array on error
           }
@@ -117,12 +145,13 @@ export default function ZaloAccountsPage() {
   }, [])
 
   // Format the lastActiveAt timestamp into a user-friendly string
-  const formatLastActive = (timestamp) => {
+  const formatLastActive = (timestamp: string | number | Date) => {
     if (!timestamp) return "Chưa hoạt động"
 
     const lastActive = new Date(timestamp)
     const now = new Date()
-    const diffMs = now - lastActive
+
+    const diffMs = now.getTime() - new Date(lastActive).getTime()
     const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
 
     if (diffDays === 0) {
@@ -134,54 +163,67 @@ export default function ZaloAccountsPage() {
     }
   }
 
-  const filteredAccounts = accounts.filter(
+
+  const filteredAccounts = (accounts || []).filter(
       (account) =>
           account.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
           account.zaloId.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          account.department.toLowerCase().includes(searchQuery.toLowerCase()),
+          account.department.toLowerCase().includes(searchQuery.toLowerCase())
   )
+  // const refreshQR = () => {
+  //   setIsSubmitting(true)refreshQR
+  //   // Simulate QR code refresh delay
+  //   setTimeout(() => {
+  //     setQrCode(`qr-code-${Math.random().toString(36).substring(2, 8)}`)
+  //     setIsSubmitting(false)
+  //   }, 800)
+  // }
 
-  const refreshQR = () => {
-    setIsSubmitting(true)
-    // Simulate QR code refresh delay
-    setTimeout(() => {
-      setQrCode(`qr-code-${Math.random().toString(36).substring(2, 8)}`)
-      setIsSubmitting(false)
-    }, 800)
-  }
+  const handleAddAccount = (newAccount: any) => {
 
-  const handleAddAccount = (newAccount) => {
+
     setAccounts([...accounts, {
       ...newAccount,
       id: Date.now().toString(),
       userId: currentUserId,
+
       isDefault: accounts.length === 0 // Make it default if it's the first account
     }])
   }
 
-  const handleDeleteAccount = (id) => {
+  const handleDeleteAccount = (id: string) => {
     // If we're deleting the default account, make another one default
+
     const accountToDelete = accounts.find(account => account.id === id)
+
     const remainingAccounts = accounts.filter(account => account.id !== id)
 
     if (accountToDelete && accountToDelete.isDefault && remainingAccounts.length > 0) {
       // Set the first remaining account as default
-      remainingAccounts[0] = { ...remainingAccounts[0], isDefault: true }
+      remainingAccounts[0] = {...remainingAccounts[0], isDefault: true}
     }
 
     setAccounts(remainingAccounts)
   }
 
-  const handleToggleStatus = (id) => {
+  const handleToggleStatus = (id: string) => {
+
     setAccounts(
         accounts.map((account) =>
-            account.id === id ? { ...account, status: account.status === "Hoạt động" ? "Tạm dừng" : "Hoạt động" } : account,
-        ),
+            account.id === id
+                ? {
+                  ...account,
+                  status: account.status === "Hoạt động" ? "Tạm dừng" : "Hoạt động",
+                }
+                : account
+        )
     )
+
   }
 
-  const handleSetDefaultAccount = (id) => {
+  const handleSetDefaultAccount = (id: string) => {
     setAccounts(
+
         accounts.map((account) => ({
           ...account,
           isDefault: account.id === id
@@ -191,7 +233,7 @@ export default function ZaloAccountsPage() {
 
   return (
       <DashboardShell>
-        <DashboardHeader heading="Tài Khoản Zalo" text="Quản lý và liên kết tài khoản Zalo với hệ thống." />
+        <DashboardHeader heading="Tài Khoản Zalo" text="Quản lý và liên kết tài khoản Zalo với hệ thống."/>
         <Tabs defaultValue="accounts" className="space-y-4">
           <div className="flex items-center justify-between">
             <TabsList>
@@ -201,7 +243,7 @@ export default function ZaloAccountsPage() {
             </TabsList>
             <div className="flex items-center gap-2">
               <div className="flex items-center gap-2">
-                <Search className="h-4 w-4 text-muted-foreground" />
+                <Search className="h-4 w-4 text-muted-foreground"/>
                 <Input
                     placeholder="Tìm kiếm tài khoản..."
                     className="h-9 w-[200px] lg:w-[250px]"
@@ -209,19 +251,21 @@ export default function ZaloAccountsPage() {
                     onChange={(e) => setSearchQuery(e.target.value)}
                 />
               </div>
-              <AddAccountDialog onAddAccount={handleAddAccount} />
+              <AddAccountDialog onAddAccount={handleAddAccount}/>
             </div>
           </div>
 
           <TabsContent value="accounts" className="space-y-4">
             {showConnectGuide && (
                 <Alert className="mb-4">
-                  <AlertCircle className="h-4 w-4" />
+                  <AlertCircle className="h-4 w-4"/>
                   <AlertTitle>Hướng dẫn liên kết tài khoản Zalo</AlertTitle>
                   <AlertDescription>
-                    Để liên kết tài khoản Zalo, nhân viên cần quét mã QR hoặc nhập mã xác thực được cung cấp. Sau khi liên
+                    Để liên kết tài khoản Zalo, nhân viên cần quét mã QR hoặc nhập mã xác thực được cung cấp. Sau khi
+                    liên
                     kết, họ có thể sử dụng tài khoản Zalo để đăng nhập và tương tác với khách hàng thông qua hệ thống.
-                    <Button variant="link" className="p-0 h-auto font-normal" onClick={() => setShowConnectGuide(false)}>
+                    <Button variant="link" className="p-0 h-auto font-normal"
+                            onClick={() => setShowConnectGuide(false)}>
                       Ẩn hướng dẫn
                     </Button>
                   </AlertDescription>
@@ -265,8 +309,10 @@ export default function ZaloAccountsPage() {
                             <TableCell>
                               <div className="flex items-center gap-3">
                                 <Avatar className="h-8 w-8">
-                                  <AvatarImage src={account.avatar} alt={account.name} />
-                                  <AvatarFallback>{account.name.charAt(0)}</AvatarFallback>
+
+                                  <AvatarImage src={account.avatar} />
+
+                                  <AvatarFallback>{account.name}</AvatarFallback>
                                 </Avatar>
                                 <div>
                                   <p className="font-medium">
@@ -347,6 +393,7 @@ export default function ZaloAccountsPage() {
                                   <DropdownMenuItem
                                       onClick={() => handleDeleteAccount(account.id)}
                                       className="text-red-600 focus:text-red-600"
+
                                       disabled={accounts.length === 1} // Prevent deleting the last account
                                   >
                                     <Trash2 className="mr-2 h-4 w-4" /> Xóa liên kết
@@ -529,20 +576,11 @@ export default function ZaloAccountsPage() {
       </DashboardShell>
   )
 }
-
+// @ts-ignore
 function AddAccountDialog({ onAddAccount }) {
   const [open, setOpen] = useState(false)
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [key, setKey] = useState(0);
-  const refreshQR = () => {
-    setIsSubmitting(true)
-    setKey((prevKey) => prevKey + 1);
-    // Simulate QR code refresh delay
-    setTimeout(() => {
-      setIsSubmitting(false)
-    }, 800)
-  }
 
+  const [key] = useState(0);
   const [newAccount, setNewAccount] = useState({
     name: "",
     email: "",
@@ -555,7 +593,7 @@ function AddAccountDialog({ onAddAccount }) {
   })
   const [linkMethod, setLinkMethod] = useState("qr")
 
-  const handleSubmit = (e) => {
+  const handleSubmit = (e: { preventDefault: () => void }) => {
     e.preventDefault()
     onAddAccount(newAccount)
     setNewAccount({

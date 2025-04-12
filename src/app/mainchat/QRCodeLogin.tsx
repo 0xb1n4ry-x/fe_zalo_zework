@@ -7,12 +7,13 @@ import { RefreshCw, CheckCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useRouter } from 'next/navigation'
 
+// @ts-ignore
 export function QRCodeLogin({ onSuccessClose }) {
     const [qrData, setQrData] = useState<QRCodeData | null>(null)
     const [status, setStatus] = useState<string>('Đang tạo mã QR...')
     const [isExpired, setIsExpired] = useState<boolean>(false)
     const [Du, setDu] = useState<string>()
-    const [userId, setUserId] = useState<string>()
+    // const [userId, setUserId] = useState<string>()
     const [success, setSuccess] = useState<boolean>(false)
     const router = useRouter()
 
@@ -52,27 +53,32 @@ export function QRCodeLogin({ onSuccessClose }) {
         }
     }
 
-    const pollScanStatus = async (sessionId: string) => {
-        // Không tiếp tục polling nếu đã thành công
-        if (success) return
+    const pollScanStatus = async (sessionId: string | undefined) => {
+        if (!sessionId || success) return;
 
-        const result = await checkScanStatus(sessionId)
+        const result = await checkScanStatus(sessionId);
 
-        if (result.status === 'scanned') {
-            setStatus('Đang đợi xác nhận...')
-            setTimeout(() => pollScanStatus(sessionId), 2000)
-        } else if (result.status === 'scanned-confirm') {
-            setStatus('QR đã được quét và xác nhận đăng nhập...')
-            await handleConfirmLogin(sessionId)
-        } else if (result.status === 'expired') {
-            setStatus('QR code đã hết hạn. Vui lòng tạo QR mới.')
-            setIsExpired(true)
-        } else {
-            setTimeout(() => pollScanStatus(sessionId), 2000)
+        switch (result.status) {
+            case 'scanned':
+                setStatus('Đang đợi xác nhận...');
+                setTimeout(() => pollScanStatus(sessionId), 2000);
+                break;
+            case 'scanned-confirm':
+                setStatus('QR đã được quét và xác nhận đăng nhập...');
+                await handleConfirmLogin(sessionId);
+                break;
+            case 'expired':
+                setStatus('QR code đã hết hạn. Vui lòng tạo QR mới.');
+                setIsExpired(true);
+                break;
+            default:
+                setTimeout(() => pollScanStatus(sessionId), 2000);
         }
     }
-
-    const handleConfirmLogin = async (sessionId: string) => {
+    type ScanStatus = {
+        status: 'waiting' | 'scanned' | 'confirmed' | string;
+    };
+    const handleConfirmLogin = async (sessionId: string | undefined) => {
         try {
             const userString = localStorage.getItem("user")
             console.log(userString)

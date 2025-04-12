@@ -28,7 +28,8 @@ export default function OTPVerification() {
     const [countdown, setCountdown] = useState(60)
     const [canResend, setCanResend] = useState(false)
     const [userEmail, setUserEmail] = useState<string>("")
-    const [userData, setUserData] = useState<any>(null)
+
+    const [userData, setUserData] = useState<never>()
     const inputRefs = useRef<(HTMLInputElement | null)[]>([])
     const { toast } = useToast()
     const router = useRouter()
@@ -128,6 +129,7 @@ export default function OTPVerification() {
 
                                 if (email) break;
                             }
+                            // eslint-disable-next-line @typescript-eslint/no-unused-vars
                         } catch (e) {
                             // Bỏ qua lỗi parse JSON
                         }
@@ -405,6 +407,7 @@ export default function OTPVerification() {
         )
     }
 
+
     return (
         <div className="w-full max-w-md mx-auto p-6 space-y-8">
             <motion.div
@@ -442,7 +445,9 @@ export default function OTPVerification() {
                             transition={{ duration: 0.3, delay: 0.1 * index }}
                         >
                             <Input
-                                ref={(el) => (inputRefs.current[index] = el)}
+                                ref={(el) => {
+                                    inputRefs.current[index] = el;
+                                }}
                                 type="text"
                                 inputMode="numeric"
                                 maxLength={1}

@@ -36,10 +36,20 @@ import { Badge } from "@/components/ui/badge"
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Separator } from "@/components/ui/separator"
-import { BarChart, LineChart }  from "recharts"
+import {
+  LineChart,
+  Line,
+  CartesianGrid,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts"
+
 
 
 export default function BillingPage() {
+
   return (
       <DashboardShell>
         <DashboardHeader heading="Thanh Toán" text="Quản lý thông tin thanh toán và phương thức thanh toán của bạn." />
@@ -325,18 +335,15 @@ export default function BillingPage() {
                       <div className="h-full w-[95%] rounded-full bg-amber-500"></div>
                     </div>
                     <div className="pt-2">
-                      <LineChart
-                          className="aspect-[4/1] w-full"
-                          data={messageUsageData}
-                          index="date"
-                          categories={["messages"]}
-                          colors={["blue"]}
-                          valueFormatter={(value) => `${value.toLocaleString()} tin nhắn`}
-                          showXAxis={true}
-                          showYAxis={true}
-                          showLegend={false}
-                          showGridLines={false}
-                      />
+                      <ResponsiveContainer width="100%" height={300}>
+                        <LineChart data={messageUsageData}>
+                          <CartesianGrid stroke="#ccc" />
+                          <XAxis dataKey="date" />
+                          <YAxis />
+                          <Tooltip formatter={(value) => `${value.toLocaleString()} tin nhắn`} />
+                          <Line type="monotone" dataKey="messages" stroke="#3b82f6" strokeWidth={2} />
+                        </LineChart>
+                      </ResponsiveContainer>
                     </div>
                   </div>
 
@@ -468,18 +475,15 @@ export default function BillingPage() {
                       <div className="h-full w-[96%] rounded-full bg-green-500"></div>
                     </div>
                     <div className="pt-2">
-                      <BarChart
-                          className="aspect-[4/1] w-full"
-                          data={employeeActivityData}
-                          index="department"
-                          categories={["active", "inactive"]}
-                          colors={["green", "gray"]}
-                          valueFormatter={(value) => `${value} nhân viên`}
-                          showXAxis={true}
-                          showYAxis={true}
-                          showLegend={true}
-                          showGridLines={false}
-                      />
+                      <ResponsiveContainer width="100%" height={300}>
+                        <LineChart data={messageUsageData}>
+                          <CartesianGrid stroke="#ccc" />
+                          <XAxis dataKey="date" />
+                          <YAxis />
+                          <Tooltip formatter={(value) => `${value.toLocaleString()} tin nhắn`} />
+                          <Line type="monotone" dataKey="messages" stroke="#3b82f6" strokeWidth={2} />
+                        </LineChart>
+                      </ResponsiveContainer>
                     </div>
                   </div>
                 </div>

@@ -60,12 +60,12 @@ export function StorageUsage() {
     const freeStorage = totalStorage - usedStorage
 
     // Định dạng tooltip cho biểu đồ tròn
-    const formatPieTooltip = (value) => {
+    const formatPieTooltip = (value: any) => {
         return [`${value} GB`, "Kích thước"]
     }
 
     // Định dạng tooltip cho biểu đồ xu hướng
-    const formatAreaTooltip = (value) => {
+    const formatAreaTooltip = (value :any) => {
         return [`${value} GB`, "Dung lượng đã sử dụng"]
     }
 
@@ -80,8 +80,8 @@ export function StorageUsage() {
                     </TabsList>
                 </Tabs>
 
-                <Select value={timeRange} onValueChange={setTimeRange} className="w-full sm:w-[150px]">
-                    <SelectTrigger>
+                <Select value={timeRange} onValueChange={setTimeRange}>
+                    <SelectTrigger className="w-full sm:w-[150px]">
                         <SelectValue placeholder="Khoảng thời gian" />
                     </SelectTrigger>
                     <SelectContent>

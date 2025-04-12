@@ -10,7 +10,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { motion, AnimatePresence } from "framer-motion"
-import { CheckCircle, Star, Heart, ThumbsUp } from "lucide-react"
+import { CheckCircle, Heart, ThumbsUp } from "lucide-react"
 
 interface ThankYouDialogProps {
   isOpen: boolean

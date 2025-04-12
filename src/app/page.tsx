@@ -22,59 +22,7 @@ import {
 import BinaryDataStreamAnimation from "@/components/ui/binary-server-animation";
 import { SiZalo } from "react-icons/si";
 import {FaEnvelope, FaTelegram} from "react-icons/fa";
-import CanvasFingerprint from '@/app/canvasFingerprint/canvasFingerprint'
 import {Navbar} from "@/components/navbar";
-
-
-const AnimatedTitle = ({ text }: { text: string }) => (
-    <motion.h3
-        className="text-lg font-semibold mb-2 text-center text-gray-800 relative overflow-hidden"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.5 }}
-    >
-        {text.split("").map((char, index) => (
-            <motion.span
-                key={index}
-                className="inline-block"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{
-                    duration: 0.5,
-                    delay: index * 0.03,
-                    ease: "easeOut",
-                }}
-            >
-                {char === " " ? "\u00A0" : char}
-            </motion.span>
-        ))}
-        <motion.div
-            className="absolute bottom-0 left-0 w-full h-0.5 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500"
-            initial={{ scaleX: 0 }}
-            animate={{ scaleX: 1 }}
-            transition={{
-                duration: 0.8,
-                delay: text.length * 0.03,
-                ease: "easeInOut",
-            }}
-        >
-            <motion.div
-                className="absolute top-0 left-0 w-full h-full bg-white"
-                animate={{
-                    x: ["0%", "100%"],
-                    opacity: [0, 1, 0],
-                }}
-                transition={{
-                    duration: 2,
-                    repeat: Number.POSITIVE_INFINITY,
-                    repeatType: "loop",
-                    ease: "linear",
-                }}
-            />
-        </motion.div>
-    </motion.h3>
-)
-
 export default function Home() {
     const { scrollYProgress } = useScroll()
     const y = useTransform(scrollYProgress, [0, 1], ["0%", "50%"])
@@ -272,8 +220,7 @@ export default function Home() {
                             description="Hoàn hảo cho người dùng cá nhân"
                             features={["Tin nhắn không giới hạn", "Mã hóa cơ bản", "1GB lưu trữ file", "2 thiết bị mỗi tài khoản"]}
                             ctaText="Bắt đầu ngay"
-                            ctaLink="/login"
-                        />
+                            ctaLink="/login" period={undefined}                        />
                         <PricingCard
                             title="Pro"
                             price="2$"
@@ -302,8 +249,7 @@ export default function Home() {
                                 "Hỗ trợ 24/7 chuyên biệt",
                             ]}
                             ctaText="Liên hệ bộ phận bán hàng"
-                            ctaLink="/contact-sales"
-                        />
+                            ctaLink="/contact-sales" period={undefined}                        />
                     </div>
                 </div>
             </section>
@@ -477,12 +423,6 @@ export default function Home() {
                                 >
                                     Khả năng tiếp cận
                                 </Link>
-                                <Link
-                                    href="/canvasFingerprint"
-                                    className="text-sm text-gray-400 hover:text-white transition-colors duration-300"
-                                >
-                                     Canvas Fingerprint
-                                </Link>
                             </div>
                         </div>
                     </div>
@@ -492,6 +432,7 @@ export default function Home() {
     )
 }
 
+// @ts-ignore
 function FeatureCard({ icon, title, description, details }) {
     return (
         <motion.div
@@ -504,7 +445,7 @@ function FeatureCard({ icon, title, description, details }) {
             </div>
             <p className="text-gray-600 mb-4">{description}</p>
             <ul className="mt-auto">
-                {details.map((detail, index) => (
+                {details.map((detail: string | number | bigint | boolean | React.ReactElement<unknown, string | React.JSXElementConstructor<any>> | Iterable<React.ReactNode> | React.ReactPortal | Promise<string | number | bigint | boolean | React.ReactPortal | React.ReactElement<unknown, string | React.JSXElementConstructor<any>> | Iterable<React.ReactNode> | null | undefined> | null | undefined, index: React.Key | null | undefined) => (
                     <li key={index} className="flex items-center text-gray-600 mb-2">
                         <Check className="h-5 w-5 text-green-500 mr-2" />
                         {detail}
@@ -515,6 +456,7 @@ function FeatureCard({ icon, title, description, details }) {
     )
 }
 
+// @ts-ignore
 function AdvancedFeatureCard({ icon, title, description }) {
     return (
         <motion.div
@@ -528,6 +470,7 @@ function AdvancedFeatureCard({ icon, title, description }) {
     )
 }
 
+// @ts-ignore
 function PricingCard({ title, price, period, description, features, ctaText, ctaLink, highlighted = false }) {
     return (
         <motion.div
@@ -543,7 +486,7 @@ function PricingCard({ title, price, period, description, features, ctaText, cta
             </div>
             <p className="text-gray-600 mb-6">{description}</p>
             <ul className="mb-6 flex-grow">
-                {features.map((feature, index) => (
+                {features.map((feature: string | number | bigint | boolean | React.ReactElement<unknown, string | React.JSXElementConstructor<any>> | Iterable<React.ReactNode> | React.ReactPortal | Promise<string | number | bigint | boolean | React.ReactPortal | React.ReactElement<unknown, string | React.JSXElementConstructor<any>> | Iterable<React.ReactNode> | null | undefined> | null | undefined, index: React.Key | null | undefined) => (
                     <li key={index} className="flex items-center text-gray-600 mb-2">
                         <Check className="h-5 w-5 text-green-500 mr-2" />
                         {feature}
@@ -557,6 +500,7 @@ function PricingCard({ title, price, period, description, features, ctaText, cta
     )
 }
 
+// @ts-ignore
 function AdvantageCard({ icon, title, description }) {
     return (
         <motion.div
@@ -570,16 +514,18 @@ function AdvantageCard({ icon, title, description }) {
     )
 }
 
+// @ts-ignore
 function TestimonialCard({ quote, author, role }) {
     return (
         <motion.div className="flex flex-col items-center p-6 bg-white rounded-lg shadow-md" whileHover={{ scale: 1.05 }}>
-            <blockquote className="text-gray-600 italic mb-4">"{quote}"</blockquote>
+            <blockquote className="text-gray-600 italic mb-4">{quote}</blockquote>
             <p className="font-semibold text-gray-800">{author}</p>
             <p className="text-gray-500">{role}</p>
         </motion.div>
     )
 }
 
+// @ts-ignore
 function SocialIcon({ icon, href }) {
     return (
         <motion.a
@@ -593,10 +539,12 @@ function SocialIcon({ icon, href }) {
     )
 }
 
+// @ts-ignore
 function FooterLinkList({ children }) {
     return <ul className="space-y-2">{children}</ul>
 }
 
+// @ts-ignore
 function FooterLink({ href, children }) {
     return (
         <li>

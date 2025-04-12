@@ -9,8 +9,14 @@ interface Message {
     sender: "user" | "other"
     timestamp: string
 }
-
-async function fetchUserProfile(id: string): Promise<User> {
+type FUIDResponse = {
+    message: {
+        data: {
+            changed_profiles: Record<string, User>
+        }
+    }
+}
+async function fetchUserProfile(id: string): Promise<FUIDResponse> {
     if (typeof window === 'undefined' || !window.localStorage) {
         throw new Error("localStorage is not available");
     }
@@ -21,7 +27,9 @@ async function fetchUserProfile(id: string): Promise<User> {
     try {
         ld = JSON.parse(rawData);
     } catch (e) {
-        throw new Error("Invalid data in localStorage");
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-expect-error
+        throw new Error("Invalid data in localStorage", e);
     }
 
     if (!Array.isArray(ld) || ld.length === 0) {
@@ -62,7 +70,13 @@ export function useChatData(selectedUserId: string | null) {
                     setUserProfile(profile.message?.data?.changed_profiles?.[selectedUserId])
                     // setMessages(chatMessages)
                 } catch (err) {
-                    setError("Failed to load chat data")
+
+                    if (err instanceof Error) {
+                        setError(`Failed to load chat data: ${err.message}`);
+                    } else {
+                        setError("Failed to load chat data: Unknown error");
+                    }
+
                 } finally {
                     setIsLoading(false)
                 }

@@ -8,7 +8,7 @@ import { Menu, ChevronLeft } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useIsMobile } from "@/hooks/use-mobile"
 
-interface DashboardShellProps extends React.HTMLAttributes<HTMLDivElement> {}
+type DashboardShellProps = React.HTMLAttributes<HTMLDivElement>
 
 export function DashboardShell({ children, className, ...props }: DashboardShellProps) {
     const [showMobileMenu, setShowMobileMenu] = useState(false)

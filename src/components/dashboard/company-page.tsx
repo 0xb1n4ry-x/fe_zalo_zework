@@ -1,15 +1,15 @@
 "use client"
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Textarea } from "@/components/ui/textarea"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { DashboardShell } from "@/components/dashboard/dashboard-shell"
-import { DashboardHeader } from "@/components/dashboard/dashboard-header"
+import { JSXElementConstructor, Key, ReactElement, ReactNode, ReactPortal, SetStateAction, useState} from "react"
+import {Button} from "@/components/ui/button"
+import {Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle} from "@/components/ui/card"
+import {Input} from "@/components/ui/input"
+import {Label} from "@/components/ui/label"
+import {Tabs, TabsContent, TabsList, TabsTrigger} from "@/components/ui/tabs"
+import {Textarea} from "@/components/ui/textarea"
+import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "@/components/ui/table"
+import {DashboardShell} from "@/components/dashboard/dashboard-shell"
+import {DashboardHeader} from "@/components/dashboard/dashboard-header"
 import {
     Dialog,
     DialogContent,
@@ -19,8 +19,8 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "@/components/ui/dialog"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Badge } from "@/components/ui/badge"
+import {Avatar, AvatarFallback, AvatarImage} from "@/components/ui/avatar"
+import {Badge} from "@/components/ui/badge"
 import {
     Building,
     Users,
@@ -48,8 +48,8 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Separator } from "@/components/ui/separator"
+import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select"
+import {Separator} from "@/components/ui/separator"
 
 export default function CompanyPage() {
     // Thay đổi phần khai báo state để thêm trạng thái có công ty hay không
@@ -68,14 +68,14 @@ export default function CompanyPage() {
     })
 
     const [employees, setEmployees] = useState([...initialEmployees])
-    const [departments, setDepartments] = useState([...initialDepartments])
+    const [departments] = useState([...initialDepartments])
     const [searchQuery, setSearchQuery] = useState("")
     const [isEditing, setIsEditing] = useState(false)
-    const [editedInfo, setEditedInfo] = useState({ ...companyInfo })
+    const [editedInfo, setEditedInfo] = useState({...companyInfo})
     const [selectedDepartment, setSelectedDepartment] = useState("all")
-
+    const [preview, setPreview] = useState<string | null>(null);
     // Thêm state để quản lý xem trước ảnh khi chỉnh sửa
-    const [previewLogo, setPreviewLogo] = useState(null)
+    const [previewLogo, setPreviewLogo] = useState<string | null>(null)
 
     // Lọc nhân viên theo tìm kiếm và phòng ban
     const filteredEmployees = employees.filter((employee) => {
@@ -90,22 +90,33 @@ export default function CompanyPage() {
     })
 
     // Xử lý thêm nhân viên mới
-    const handleAddEmployee = (newEmployee) => {
-        setEmployees([...employees, { ...newEmployee, id: employees.length + 1 }])
+    const handleAddEmployee = (newEmployee: {
+        id: number;
+        name: string;
+        email: string;
+        employeeId: string;
+        department: string;
+        position: string;
+        joinDate: string;
+        phone: string;
+        avatar: string
+    }) => {
+        setEmployees([...employees, {...newEmployee, id: employees.length + 1}])
     }
 
     // Xử lý xóa nhân viên
-    const handleDeleteEmployee = (id) => {
+    const handleDeleteEmployee = (id: number) => {
         setEmployees(employees.filter((employee) => employee.id !== id))
     }
 
     // Thêm hàm xử lý tải lên ảnh
-    const handleLogoUpload = (e) => {
-        const file = e.target.files[0]
+    const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0]
         if (file) {
             const previewUrl = URL.createObjectURL(file)
+
             setPreviewLogo(previewUrl)
-            setEditedInfo({ ...editedInfo, logo: previewUrl })
+            setEditedInfo({...editedInfo, logo: previewUrl})
         }
     }
 
@@ -117,21 +128,24 @@ export default function CompanyPage() {
     }
 
     // Thay đổi phần return của component CompanyPage, thêm điều kiện hiển thị
+    // @ts-ignore
+    // @ts-ignore
     return (
         <DashboardShell>
-            <DashboardHeader heading="Thông Tin Công Ty" text="Quản lý thông tin công ty và nhân viên." />
+            <DashboardHeader heading="Thông Tin Công Ty" text="Quản lý thông tin công ty và nhân viên."/>
 
             {!hasCompany ? (
                 <Card className="mt-6">
                     <CardContent className="flex flex-col items-center justify-center py-12">
-                        <Building className="h-16 w-16 text-muted-foreground mb-4" />
+                        <Building className="h-16 w-16 text-muted-foreground mb-4"/>
                         <h2 className="text-xl font-semibold mb-2">Chưa có thông tin công ty</h2>
                         <p className="text-muted-foreground text-center max-w-md mb-6">
-                            Bạn chưa thêm thông tin công ty. Thêm thông tin công ty để quản lý nhân viên, phòng ban và các tài liệu
+                            Bạn chưa thêm thông tin công ty. Thêm thông tin công ty để quản lý nhân viên, phòng ban và
+                            các tài liệu
                             liên quan.
                         </p>
                         <AddCompanyDialog
-                            onAddCompany={(company) => {
+                            onAddCompany={(company: SetStateAction<{ name: string; address: string; phone: string; email: string; website: string; taxId: string; foundedDate: string; industry: string; description: string; logo: string }>) => {
                                 setCompanyInfo(company)
                                 setHasCompany(true)
                             }}
@@ -157,7 +171,7 @@ export default function CompanyPage() {
                                 </div>
                                 {!isEditing ? (
                                     <Button variant="outline" onClick={() => setIsEditing(true)}>
-                                        <Pencil className="mr-2 h-4 w-4" /> Chỉnh Sửa
+                                        <Pencil className="mr-2 h-4 w-4"/> Chỉnh Sửa
                                     </Button>
                                 ) : (
                                     <div className="flex gap-2">
@@ -165,7 +179,7 @@ export default function CompanyPage() {
                                             Hủy
                                         </Button>
                                         <Button onClick={handleSaveCompanyInfo}>
-                                            <Save className="mr-2 h-4 w-4" /> Lưu
+                                            <Save className="mr-2 h-4 w-4"/> Lưu
                                         </Button>
                                     </div>
                                 )}
@@ -180,7 +194,10 @@ export default function CompanyPage() {
                                                     <Input
                                                         id="company-name"
                                                         value={editedInfo.name}
-                                                        onChange={(e) => setEditedInfo({ ...editedInfo, name: e.target.value })}
+                                                        onChange={(e) => setEditedInfo({
+                                                            ...editedInfo,
+                                                            name: e.target.value
+                                                        })}
                                                     />
                                                 </div>
 
@@ -190,7 +207,10 @@ export default function CompanyPage() {
                                                         id="address"
                                                         rows={2}
                                                         value={editedInfo.address}
-                                                        onChange={(e) => setEditedInfo({ ...editedInfo, address: e.target.value })}
+                                                        onChange={(e) => setEditedInfo({
+                                                            ...editedInfo,
+                                                            address: e.target.value
+                                                        })}
                                                     />
                                                 </div>
 
@@ -200,7 +220,10 @@ export default function CompanyPage() {
                                                         <Input
                                                             id="phone"
                                                             value={editedInfo.phone}
-                                                            onChange={(e) => setEditedInfo({ ...editedInfo, phone: e.target.value })}
+                                                            onChange={(e) => setEditedInfo({
+                                                                ...editedInfo,
+                                                                phone: e.target.value
+                                                            })}
                                                         />
                                                     </div>
                                                     <div className="grid gap-2">
@@ -209,7 +232,10 @@ export default function CompanyPage() {
                                                             id="email"
                                                             type="email"
                                                             value={editedInfo.email}
-                                                            onChange={(e) => setEditedInfo({ ...editedInfo, email: e.target.value })}
+                                                            onChange={(e) => setEditedInfo({
+                                                                ...editedInfo,
+                                                                email: e.target.value
+                                                            })}
                                                         />
                                                     </div>
                                                 </div>
@@ -220,7 +246,10 @@ export default function CompanyPage() {
                                                         <Input
                                                             id="website"
                                                             value={editedInfo.website}
-                                                            onChange={(e) => setEditedInfo({ ...editedInfo, website: e.target.value })}
+                                                            onChange={(e) => setEditedInfo({
+                                                                ...editedInfo,
+                                                                website: e.target.value
+                                                            })}
                                                         />
                                                     </div>
                                                     <div className="grid gap-2">
@@ -228,7 +257,10 @@ export default function CompanyPage() {
                                                         <Input
                                                             id="tax-id"
                                                             value={editedInfo.taxId}
-                                                            onChange={(e) => setEditedInfo({ ...editedInfo, taxId: e.target.value })}
+                                                            onChange={(e) => setEditedInfo({
+                                                                ...editedInfo,
+                                                                taxId: e.target.value
+                                                            })}
                                                         />
                                                     </div>
                                                 </div>
@@ -239,17 +271,23 @@ export default function CompanyPage() {
                                                         <Input
                                                             id="founded-date"
                                                             value={editedInfo.foundedDate}
-                                                            onChange={(e) => setEditedInfo({ ...editedInfo, foundedDate: e.target.value })}
+                                                            onChange={(e) => setEditedInfo({
+                                                                ...editedInfo,
+                                                                foundedDate: e.target.value
+                                                            })}
                                                         />
                                                     </div>
                                                     <div className="grid gap-2">
                                                         <Label htmlFor="industry">Ngành Nghề</Label>
                                                         <Select
                                                             value={editedInfo.industry}
-                                                            onValueChange={(value) => setEditedInfo({ ...editedInfo, industry: value })}
+                                                            onValueChange={(value) => setEditedInfo({
+                                                                ...editedInfo,
+                                                                industry: value
+                                                            })}
                                                         >
                                                             <SelectTrigger id="industry">
-                                                                <SelectValue placeholder="Chọn ngành nghề" />
+                                                                <SelectValue placeholder="Chọn ngành nghề"/>
                                                             </SelectTrigger>
                                                             <SelectContent>
                                                                 {industries.map((industry) => (
@@ -266,12 +304,14 @@ export default function CompanyPage() {
                                             <div className="md:w-1/3 flex flex-col items-center space-y-4">
                                                 <div className="relative">
                                                     <Avatar className="h-32 w-32">
-                                                        <AvatarImage src={previewLogo || editedInfo.logo} alt="Logo công ty" />
+                                                        <AvatarImage src={previewLogo || editedInfo.logo}
+                                                                     alt="Logo công ty"/>
                                                         <AvatarFallback>{editedInfo.name ? editedInfo.name.charAt(0) : "C"}</AvatarFallback>
                                                     </Avatar>
-                                                    <Button size="icon" variant="outline" className="absolute bottom-0 right-0 rounded-full">
+                                                    <Button size="icon" variant="outline"
+                                                            className="absolute bottom-0 right-0 rounded-full">
                                                         <label htmlFor="edit-logo-upload" className="cursor-pointer">
-                                                            <Upload className="h-4 w-4" />
+                                                            <Upload className="h-4 w-4"/>
                                                             <span className="sr-only">Tải logo lên</span>
                                                         </label>
                                                     </Button>
@@ -279,25 +319,35 @@ export default function CompanyPage() {
                                                         id="edit-logo-upload"
                                                         type="file"
                                                         accept="image/*"
+
+
                                                         onChange={handleLogoUpload}
                                                         className="hidden"
                                                     />
                                                 </div>
                                                 <div className="w-full">
-                                                    <Label htmlFor="edit-logo-upload-btn" className="block mb-2 text-sm font-medium">
+                                                    <Label htmlFor="edit-logo-upload-btn"
+                                                           className="block mb-2 text-sm font-medium">
                                                         Logo Công Ty
                                                     </Label>
                                                     <div className="flex items-center">
                                                         <Button
                                                             variant="outline"
                                                             className="w-full"
-                                                            onClick={() => document.getElementById("edit-logo-upload").click()}
+
+                                                            onClick={() => {
+                                                                const input = document.getElementById("edit-logo-upload") as HTMLInputElement | null;
+                                                                if (input) {
+                                                                    input.click();
+                                                                }
+                                                            }}
                                                         >
-                                                            <Upload className="mr-2 h-4 w-4" />
+                                                            <Upload className="mr-2 h-4 w-4"/>
                                                             Tải Logo Lên
                                                         </Button>
                                                     </div>
-                                                    <p className="mt-1 text-xs text-muted-foreground">PNG, JPG hoặc GIF (tối đa 2MB)</p>
+                                                    <p className="mt-1 text-xs text-muted-foreground">PNG, JPG hoặc GIF
+                                                        (tối đa 2MB)</p>
                                                 </div>
 
                                                 <div className="w-full mt-4">
@@ -306,7 +356,10 @@ export default function CompanyPage() {
                                                         id="description"
                                                         rows={6}
                                                         value={editedInfo.description}
-                                                        onChange={(e) => setEditedInfo({ ...editedInfo, description: e.target.value })}
+                                                        onChange={(e) => setEditedInfo({
+                                                            ...editedInfo,
+                                                            description: e.target.value
+                                                        })}
                                                         className="mt-2"
                                                     />
                                                 </div>
@@ -318,32 +371,35 @@ export default function CompanyPage() {
                                         <div className="flex-1 space-y-4">
                                             <div className="grid gap-4">
                                                 <div className="flex items-center gap-2">
-                                                    <Building className="h-5 w-5 text-muted-foreground" />
+                                                    <Building className="h-5 w-5 text-muted-foreground"/>
                                                     <div>
-                                                        <p className="text-sm font-medium text-muted-foreground">Tên Công Ty</p>
+                                                        <p className="text-sm font-medium text-muted-foreground">Tên
+                                                            Công Ty</p>
                                                         <p className="font-medium">{companyInfo.name}</p>
                                                     </div>
                                                 </div>
 
                                                 <div className="flex items-start gap-2">
-                                                    <MapPin className="h-5 w-5 text-muted-foreground" />
+                                                    <MapPin className="h-5 w-5 text-muted-foreground"/>
                                                     <div>
-                                                        <p className="text-sm font-medium text-muted-foreground">Địa Chỉ</p>
+                                                        <p className="text-sm font-medium text-muted-foreground">Địa
+                                                            Chỉ</p>
                                                         <p>{companyInfo.address}</p>
                                                     </div>
                                                 </div>
 
                                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                     <div className="flex items-center gap-2">
-                                                        <Phone className="h-5 w-5 text-muted-foreground" />
+                                                        <Phone className="h-5 w-5 text-muted-foreground"/>
                                                         <div>
-                                                            <p className="text-sm font-medium text-muted-foreground">Số Điện Thoại</p>
+                                                            <p className="text-sm font-medium text-muted-foreground">Số
+                                                                Điện Thoại</p>
                                                             <p>{companyInfo.phone}</p>
                                                         </div>
                                                     </div>
 
                                                     <div className="flex items-center gap-2">
-                                                        <Mail className="h-5 w-5 text-muted-foreground" />
+                                                        <Mail className="h-5 w-5 text-muted-foreground"/>
                                                         <div>
                                                             <p className="text-sm font-medium text-muted-foreground">Email</p>
                                                             <p>{companyInfo.email}</p>
@@ -353,7 +409,7 @@ export default function CompanyPage() {
 
                                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                     <div className="flex items-center gap-2">
-                                                        <Globe className="h-5 w-5 text-muted-foreground" />
+                                                        <Globe className="h-5 w-5 text-muted-foreground"/>
                                                         <div>
                                                             <p className="text-sm font-medium text-muted-foreground">Website</p>
                                                             <p>{companyInfo.website}</p>
@@ -361,9 +417,10 @@ export default function CompanyPage() {
                                                     </div>
 
                                                     <div className="flex items-center gap-2">
-                                                        <FileText className="h-5 w-5 text-muted-foreground" />
+                                                        <FileText className="h-5 w-5 text-muted-foreground"/>
                                                         <div>
-                                                            <p className="text-sm font-medium text-muted-foreground">Mã Số Thuế</p>
+                                                            <p className="text-sm font-medium text-muted-foreground">Mã
+                                                                Số Thuế</p>
                                                             <p>{companyInfo.taxId}</p>
                                                         </div>
                                                     </div>
@@ -371,17 +428,19 @@ export default function CompanyPage() {
 
                                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                     <div className="flex items-center gap-2">
-                                                        <Calendar className="h-5 w-5 text-muted-foreground" />
+                                                        <Calendar className="h-5 w-5 text-muted-foreground"/>
                                                         <div>
-                                                            <p className="text-sm font-medium text-muted-foreground">Ngày Thành Lập</p>
+                                                            <p className="text-sm font-medium text-muted-foreground">Ngày
+                                                                Thành Lập</p>
                                                             <p>{companyInfo.foundedDate}</p>
                                                         </div>
                                                     </div>
 
                                                     <div className="flex items-center gap-2">
-                                                        <Building className="h-5 w-5 text-muted-foreground" />
+                                                        <Building className="h-5 w-5 text-muted-foreground"/>
                                                         <div>
-                                                            <p className="text-sm font-medium text-muted-foreground">Ngành Nghề</p>
+                                                            <p className="text-sm font-medium text-muted-foreground">Ngành
+                                                                Nghề</p>
                                                             <p>{companyInfo.industry}</p>
                                                         </div>
                                                     </div>
@@ -391,7 +450,7 @@ export default function CompanyPage() {
 
                                         <div className="md:w-1/3 flex flex-col items-center">
                                             <Avatar className="h-32 w-32 mb-4">
-                                                <AvatarImage src={companyInfo.logo} alt="Logo công ty" />
+                                                <AvatarImage src={companyInfo.logo} alt="Logo công ty"/>
                                                 <AvatarFallback>{companyInfo.name ? companyInfo.name.charAt(0) : "C"}</AvatarFallback>
                                             </Avatar>
 
@@ -441,7 +500,7 @@ export default function CompanyPage() {
                         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                             <div className="flex items-center gap-2">
                                 <div className="relative flex-1">
-                                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground"/>
                                     <Input
                                         placeholder="Tìm kiếm nhân viên..."
                                         className="pl-8 w-full sm:w-[300px]"
@@ -452,7 +511,7 @@ export default function CompanyPage() {
 
                                 <Select value={selectedDepartment} onValueChange={setSelectedDepartment}>
                                     <SelectTrigger className="w-full sm:w-[180px]">
-                                        <SelectValue placeholder="Chọn phòng ban" />
+                                        <SelectValue placeholder="Chọn phòng ban"/>
                                     </SelectTrigger>
                                     <SelectContent>
                                         <SelectItem value="all">Tất cả phòng ban</SelectItem>
@@ -465,12 +524,12 @@ export default function CompanyPage() {
                                 </Select>
 
                                 <Button variant="outline" size="icon" className="flex-shrink-0">
-                                    <Filter className="h-4 w-4" />
+                                    <Filter className="h-4 w-4"/>
                                     <span className="sr-only">Lọc</span>
                                 </Button>
                             </div>
 
-                            <AddEmployeeDialog onAddEmployee={handleAddEmployee} departments={departments} />
+                            <AddEmployeeDialog onAddEmployee={handleAddEmployee} departments={departments}/>
                         </div>
 
                         <Card>
@@ -500,7 +559,7 @@ export default function CompanyPage() {
                                                     <TableCell>
                                                         <div className="flex items-center gap-3">
                                                             <Avatar className="h-8 w-8">
-                                                                <AvatarImage src={employee.avatar} alt={employee.name} />
+                                                                <AvatarImage src={employee.avatar} alt={employee.name}/>
                                                                 <AvatarFallback>{employee.name.charAt(0)}</AvatarFallback>
                                                             </Avatar>
                                                             <div>
@@ -513,31 +572,34 @@ export default function CompanyPage() {
                                                     <TableCell>
                                                         <Badge variant="outline">{employee.department}</Badge>
                                                     </TableCell>
-                                                    <TableCell className="hidden md:table-cell">{employee.position}</TableCell>
-                                                    <TableCell className="hidden md:table-cell">{employee.joinDate}</TableCell>
-                                                    <TableCell className="hidden lg:table-cell">{employee.phone}</TableCell>
+                                                    <TableCell
+                                                        className="hidden md:table-cell">{employee.position}</TableCell>
+                                                    <TableCell
+                                                        className="hidden md:table-cell">{employee.joinDate}</TableCell>
+                                                    <TableCell
+                                                        className="hidden lg:table-cell">{employee.phone}</TableCell>
                                                     <TableCell className="text-right">
                                                         <DropdownMenu>
                                                             <DropdownMenuTrigger asChild>
                                                                 <Button variant="ghost" className="h-8 w-8 p-0">
                                                                     <span className="sr-only">Mở menu</span>
-                                                                    <MoreHorizontal className="h-4 w-4" />
+                                                                    <MoreHorizontal className="h-4 w-4"/>
                                                                 </Button>
                                                             </DropdownMenuTrigger>
                                                             <DropdownMenuContent align="end">
                                                                 <DropdownMenuLabel>Thao tác</DropdownMenuLabel>
                                                                 <DropdownMenuItem>
-                                                                    <Pencil className="mr-2 h-4 w-4" /> Chỉnh sửa
+                                                                    <Pencil className="mr-2 h-4 w-4"/> Chỉnh sửa
                                                                 </DropdownMenuItem>
                                                                 <DropdownMenuItem>
-                                                                    <Users className="mr-2 h-4 w-4" /> Chuyển phòng ban
+                                                                    <Users className="mr-2 h-4 w-4"/> Chuyển phòng ban
                                                                 </DropdownMenuItem>
-                                                                <DropdownMenuSeparator />
+                                                                <DropdownMenuSeparator/>
                                                                 <DropdownMenuItem
                                                                     onClick={() => handleDeleteEmployee(employee.id)}
                                                                     className="text-red-600 focus:text-red-600"
                                                                 >
-                                                                    <Trash2 className="mr-2 h-4 w-4" /> Xóa nhân viên
+                                                                    <Trash2 className="mr-2 h-4 w-4"/> Xóa nhân viên
                                                                 </DropdownMenuItem>
                                                             </DropdownMenuContent>
                                                         </DropdownMenu>
@@ -555,7 +617,7 @@ export default function CompanyPage() {
                     <TabsContent value="departments" className="space-y-4">
                         <div className="flex justify-end">
                             <Button>
-                                <Plus className="mr-2 h-4 w-4" /> Thêm Phòng Ban
+                                <Plus className="mr-2 h-4 w-4"/> Thêm Phòng Ban
                             </Button>
                         </div>
 
@@ -575,12 +637,12 @@ export default function CompanyPage() {
                                                 <span className="text-sm text-muted-foreground">Trưởng phòng:</span>
                                                 <span className="font-medium">{department.manager}</span>
                                             </div>
-                                            <Separator />
+                                            <Separator/>
                                             <div className="flex justify-between items-center">
                                                 <span className="text-sm text-muted-foreground">Ngày thành lập:</span>
                                                 <span>{department.createdDate}</span>
                                             </div>
-                                            <Separator />
+                                            <Separator/>
                                             <div className="flex justify-between items-center">
                                                 <span className="text-sm text-muted-foreground">Vị trí:</span>
                                                 <span>{department.location}</span>
@@ -589,10 +651,10 @@ export default function CompanyPage() {
                                     </CardContent>
                                     <CardFooter className="flex justify-between">
                                         <Button variant="outline" size="sm">
-                                            <Pencil className="mr-2 h-4 w-4" /> Chỉnh sửa
+                                            <Pencil className="mr-2 h-4 w-4"/> Chỉnh sửa
                                         </Button>
                                         <Button variant="outline" size="sm">
-                                            <Users className="mr-2 h-4 w-4" /> Xem nhân viên
+                                            <Users className="mr-2 h-4 w-4"/> Xem nhân viên
                                         </Button>
                                     </CardFooter>
                                 </Card>
@@ -608,15 +670,16 @@ export default function CompanyPage() {
                                 <CardDescription>Quản lý tài liệu và văn bản pháp lý của công ty.</CardDescription>
                             </CardHeader>
                             <CardContent>
-                                <div className="flex justify-center items-center h-[300px] border-2 border-dashed rounded-md">
+                                <div
+                                    className="flex justify-center items-center h-[300px] border-2 border-dashed rounded-md">
                                     <div className="text-center">
-                                        <FileText className="mx-auto h-12 w-12 text-muted-foreground" />
+                                        <FileText className="mx-auto h-12 w-12 text-muted-foreground"/>
                                         <h3 className="mt-4 text-lg font-medium">Chưa có tài liệu nào</h3>
                                         <p className="mt-2 text-sm text-muted-foreground">
                                             Tải lên tài liệu công ty như giấy phép kinh doanh, quy chế, v.v.
                                         </p>
                                         <Button className="mt-4">
-                                            <Upload className="mr-2 h-4 w-4" /> Tải Lên Tài Liệu
+                                            <Upload className="mr-2 h-4 w-4"/> Tải Lên Tài Liệu
                                         </Button>
                                     </div>
                                 </div>
@@ -630,30 +693,31 @@ export default function CompanyPage() {
 }
 
 // Thêm component AddCompanyDialog
-function AddCompanyDialog({ onAddCompany }) {
+// @ts-ignore
+function AddCompanyDialog({onAddCompany}) {
     const [open, setOpen] = useState(false)
 
     // Trong hàm AddCompanyDialog, thêm validation cho các trường nhập liệu
     // Thêm các hàm validate sau vào đầu hàm AddCompanyDialog
 
-    const validateEmail = (email) => {
+    const validateEmail = (email: string) => {
         const regex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
         return regex.test(email)
     }
 
-    const validatePhone = (phone) => {
+    const validatePhone = (phone: string) => {
         const regex =
             /^(0|\+84)(\s|\.)?((3[2-9])|(5[689])|(7[06-9])|(8[1-689])|(9[0-46-9]))(\d)(\s|\.)?(\d{3})(\s|\.)?(\d{3})$/
         return regex.test(phone)
     }
 
-    const validateWebsite = (website) => {
+    const validateWebsite = (website: string) => {
         if (!website) return true // Website là trường không bắt buộc
         const regex = /^(https?:\/\/)?(www\.)?([a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+)+)(\/[a-zA-Z0-9-._~:/?#[\]@!$&'()*+,;=]*)?$/
         return regex.test(website)
     }
 
-    const validateTaxId = (taxId) => {
+    const validateTaxId = (taxId: string) => {
         const regex = /^(\d{10}|\d{13})$/
         return regex.test(taxId)
     }
@@ -678,10 +742,10 @@ function AddCompanyDialog({ onAddCompany }) {
         description: "",
         logo: "/placeholder.svg?height=128&width=128",
     })
-    const [previewLogo, setPreviewLogo] = useState(null)
+    const [previewLogo, setPreviewLogo] = useState<string | null>(null);
 
     // Cập nhật hàm handleSubmit để kiểm tra validation
-    const handleSubmit = (e) => {
+    const handleSubmit = (e: { preventDefault: () => void }) => {
         e.preventDefault()
 
         // Reset errors
@@ -696,22 +760,22 @@ function AddCompanyDialog({ onAddCompany }) {
         let isValid = true
 
         if (!validateEmail(newCompany.email)) {
-            setErrors((prev) => ({ ...prev, email: "Email không hợp lệ" }))
+            setErrors((prev) => ({...prev, email: "Email không hợp lệ"}))
             isValid = false
         }
 
         if (!validatePhone(newCompany.phone)) {
-            setErrors((prev) => ({ ...prev, phone: "Số điện thoại không hợp lệ" }))
+            setErrors((prev) => ({...prev, phone: "Số điện thoại không hợp lệ"}))
             isValid = false
         }
 
         if (!validateWebsite(newCompany.website)) {
-            setErrors((prev) => ({ ...prev, website: "Website không hợp lệ" }))
+            setErrors((prev) => ({...prev, website: "Website không hợp lệ"}))
             isValid = false
         }
 
         if (!validateTaxId(newCompany.taxId)) {
-            setErrors((prev) => ({ ...prev, taxId: "Mã số thuế phải có 10 hoặc 13 chữ số" }))
+            setErrors((prev) => ({...prev, taxId: "Mã số thuế phải có 10 hoặc 13 chữ số"}))
             isValid = false
         }
 
@@ -721,16 +785,17 @@ function AddCompanyDialog({ onAddCompany }) {
         }
     }
 
-    const handleLogoUpload = (e) => {
-        const file = e.target.files[0]
+    const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0]
         if (file) {
             // Tạo URL xem trước cho ảnh đã chọn
             const previewUrl = URL.createObjectURL(file)
+
             setPreviewLogo(previewUrl)
 
             // Trong thực tế, bạn sẽ tải ảnh lên server và nhận URL từ server
             // Ở đây chúng ta chỉ giả lập bằng cách sử dụng URL xem trước
-            setNewCompany({ ...newCompany, logo: previewUrl })
+            setNewCompany({...newCompany, logo: previewUrl})
         }
     }
 
@@ -738,7 +803,7 @@ function AddCompanyDialog({ onAddCompany }) {
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
                 <Button>
-                    <Plus className="mr-2 h-4 w-4" /> Thêm Công Ty
+                    <Plus className="mr-2 h-4 w-4"/> Thêm Công Ty
                 </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-[600px]">
@@ -755,7 +820,7 @@ function AddCompanyDialog({ onAddCompany }) {
                                     <Input
                                         id="company-name"
                                         value={newCompany.name}
-                                        onChange={(e) => setNewCompany({ ...newCompany, name: e.target.value })}
+                                        onChange={(e) => setNewCompany({...newCompany, name: e.target.value})}
                                         required
                                     />
                                 </div>
@@ -766,7 +831,7 @@ function AddCompanyDialog({ onAddCompany }) {
                                         id="address"
                                         rows={2}
                                         value={newCompany.address}
-                                        onChange={(e) => setNewCompany({ ...newCompany, address: e.target.value })}
+                                        onChange={(e) => setNewCompany({...newCompany, address: e.target.value})}
                                         required
                                     />
                                 </div>
@@ -779,7 +844,7 @@ function AddCompanyDialog({ onAddCompany }) {
                                         id="email"
                                         type="email"
                                         value={newCompany.email}
-                                        onChange={(e) => setNewCompany({ ...newCompany, email: e.target.value })}
+                                        onChange={(e) => setNewCompany({...newCompany, email: e.target.value})}
                                         required
                                         className={errors.email ? "border-red-500" : ""}
                                     />
@@ -792,7 +857,7 @@ function AddCompanyDialog({ onAddCompany }) {
                                     <Input
                                         id="phone"
                                         value={newCompany.phone}
-                                        onChange={(e) => setNewCompany({ ...newCompany, phone: e.target.value })}
+                                        onChange={(e) => setNewCompany({...newCompany, phone: e.target.value})}
                                         required
                                         className={errors.phone ? "border-red-500" : ""}
                                     />
@@ -803,7 +868,7 @@ function AddCompanyDialog({ onAddCompany }) {
                             <div className="md:w-1/3 flex flex-col items-center space-y-4">
                                 <div className="relative">
                                     <Avatar className="h-32 w-32">
-                                        <AvatarImage src={previewLogo || newCompany.logo} alt="Logo công ty" />
+                                        <AvatarImage src={previewLogo || newCompany.logo} alt="Logo công ty"/>
                                         <AvatarFallback>{newCompany.name ? newCompany.name.charAt(0) : "C"}</AvatarFallback>
                                     </Avatar>
                                 </div>
@@ -815,6 +880,7 @@ function AddCompanyDialog({ onAddCompany }) {
                                         id="logo-upload"
                                         type="file"
                                         accept="image/*"
+
                                         onChange={handleLogoUpload}
                                         className="cursor-pointer"
                                     />
@@ -829,7 +895,7 @@ function AddCompanyDialog({ onAddCompany }) {
                                 <Input
                                     id="website"
                                     value={newCompany.website}
-                                    onChange={(e) => setNewCompany({ ...newCompany, website: e.target.value })}
+                                    onChange={(e) => setNewCompany({...newCompany, website: e.target.value})}
                                     className={errors.website ? "border-red-500" : ""}
                                 />
                                 {errors.website && <p className="text-xs text-red-500">{errors.website}</p>}
@@ -839,7 +905,7 @@ function AddCompanyDialog({ onAddCompany }) {
                                 <Input
                                     id="tax-id"
                                     value={newCompany.taxId}
-                                    onChange={(e) => setNewCompany({ ...newCompany, taxId: e.target.value })}
+                                    onChange={(e) => setNewCompany({...newCompany, taxId: e.target.value})}
                                     required
                                     className={errors.taxId ? "border-red-500" : ""}
                                 />
@@ -854,17 +920,17 @@ function AddCompanyDialog({ onAddCompany }) {
                                     id="founded-date"
                                     type="date"
                                     value={newCompany.foundedDate}
-                                    onChange={(e) => setNewCompany({ ...newCompany, foundedDate: e.target.value })}
+                                    onChange={(e) => setNewCompany({...newCompany, foundedDate: e.target.value})}
                                 />
                             </div>
                             <div className="grid gap-2">
                                 <Label htmlFor="industry">Ngành Nghề</Label>
                                 <Select
                                     value={newCompany.industry}
-                                    onValueChange={(value) => setNewCompany({ ...newCompany, industry: value })}
+                                    onValueChange={(value) => setNewCompany({...newCompany, industry: value})}
                                 >
                                     <SelectTrigger id="industry">
-                                        <SelectValue placeholder="Chọn ngành nghề" />
+                                        <SelectValue placeholder="Chọn ngành nghề"/>
                                     </SelectTrigger>
                                     <SelectContent>
                                         {industries.map((industry) => (
@@ -883,7 +949,7 @@ function AddCompanyDialog({ onAddCompany }) {
                                 id="description"
                                 rows={3}
                                 value={newCompany.description}
-                                onChange={(e) => setNewCompany({ ...newCompany, description: e.target.value })}
+                                onChange={(e) => setNewCompany({...newCompany, description: e.target.value})}
                             />
                         </div>
                     </div>
@@ -896,7 +962,8 @@ function AddCompanyDialog({ onAddCompany }) {
     )
 }
 
-function AddEmployeeDialog({ onAddEmployee, departments }) {
+// @ts-ignore
+function AddEmployeeDialog({onAddEmployee, departments}) {
     const [open, setOpen] = useState(false)
     const [newEmployee, setNewEmployee] = useState({
         name: "",
@@ -909,7 +976,7 @@ function AddEmployeeDialog({ onAddEmployee, departments }) {
         avatar: "/placeholder.svg?height=32&width=32",
     })
 
-    const handleSubmit = (e) => {
+    const handleSubmit = (e: { preventDefault: () => void }) => {
         e.preventDefault()
         onAddEmployee(newEmployee)
         setNewEmployee({
@@ -925,11 +992,12 @@ function AddEmployeeDialog({ onAddEmployee, departments }) {
         setOpen(false)
     }
 
+    // @ts-ignore
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
                 <Button>
-                    <UserPlus className="mr-2 h-4 w-4" /> Thêm Nhân Viên
+                    <UserPlus className="mr-2 h-4 w-4"/> Thêm Nhân Viên
                 </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-[550px]">
@@ -945,7 +1013,7 @@ function AddEmployeeDialog({ onAddEmployee, departments }) {
                                 <Input
                                     id="name"
                                     value={newEmployee.name}
-                                    onChange={(e) => setNewEmployee({ ...newEmployee, name: e.target.value })}
+                                    onChange={(e) => setNewEmployee({...newEmployee, name: e.target.value})}
                                     required
                                 />
                             </div>
@@ -954,7 +1022,7 @@ function AddEmployeeDialog({ onAddEmployee, departments }) {
                                 <Input
                                     id="employeeId"
                                     value={newEmployee.employeeId}
-                                    onChange={(e) => setNewEmployee({ ...newEmployee, employeeId: e.target.value })}
+                                    onChange={(e) => setNewEmployee({...newEmployee, employeeId: e.target.value})}
                                     required
                                 />
                             </div>
@@ -967,7 +1035,7 @@ function AddEmployeeDialog({ onAddEmployee, departments }) {
                                     id="email"
                                     type="email"
                                     value={newEmployee.email}
-                                    onChange={(e) => setNewEmployee({ ...newEmployee, email: e.target.value })}
+                                    onChange={(e) => setNewEmployee({...newEmployee, email: e.target.value})}
                                     required
                                 />
                             </div>
@@ -976,7 +1044,7 @@ function AddEmployeeDialog({ onAddEmployee, departments }) {
                                 <Input
                                     id="phone"
                                     value={newEmployee.phone}
-                                    onChange={(e) => setNewEmployee({ ...newEmployee, phone: e.target.value })}
+                                    onChange={(e) => setNewEmployee({...newEmployee, phone: e.target.value})}
                                 />
                             </div>
                         </div>
@@ -984,14 +1052,16 @@ function AddEmployeeDialog({ onAddEmployee, departments }) {
                         <div className="grid grid-cols-2 gap-4">
                             <div className="grid gap-2">
                                 <Label htmlFor="department">Phòng Ban</Label>
-                                <Select onValueChange={(value) => setNewEmployee({ ...newEmployee, department: value })} required>
+                                <Select onValueChange={(value) => setNewEmployee({...newEmployee, department: value})}
+                                        required>
                                     <SelectTrigger id="department">
-                                        <SelectValue placeholder="Chọn phòng ban" />
+                                        <SelectValue placeholder="Chọn phòng ban"/>
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {departments.map((dept) => (
-                                            <SelectItem key={dept.id} value={dept.name}>
-                                                {dept.name}
+                                        {departments.map((dept: { id: Key | null | undefined; name: string }) => (
+
+                                            <SelectItem key={dept.id} value={dept.name ?? ""}>
+                                                {dept.name ?? "Không tên"}
                                             </SelectItem>
                                         ))}
                                     </SelectContent>

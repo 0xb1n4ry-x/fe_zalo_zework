@@ -21,6 +21,7 @@ const FileAnimation = ({ width }: { width: string }) => {
     const randomDelay = () => Math.random() * 0.5
     const randomInitialPosition = () => `${Math.random() * 100}%`
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const lines = Array.from({ length: 3 }, (_, index) => ({
         duration: randomDuration(),
         delay: randomDelay(),

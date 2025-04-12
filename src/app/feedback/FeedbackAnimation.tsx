@@ -19,16 +19,15 @@ export default function FeedbackAnimation({ isSubmitting = false }) {
     }
   }, [isSubmitting])
 
+
+
   return (
     <div className="w-full max-w-md lg:w-1/2 flex items-center justify-center">
-      <Player
-        ref={playerRef}
-        autoplay={!isSubmitting}
-        loop={!isSubmitting}
-        src={animationData}
-        style={{ width: "100%", height: "auto", maxWidth: "400px" }}
-      >
-        <Controls visible={false} buttons={["play", "repeat", "frame", "debug"]} />
+      <Player ref={playerRef}
+              autoplay={!isSubmitting}
+              loop={!isSubmitting}
+              style={{width: "100%", height: "auto", maxWidth: "400px"}} src={""}>
+        <Controls visible={false} buttons={["play", "repeat", "frame", "debug"]}/>
       </Player>
     </div>
   )

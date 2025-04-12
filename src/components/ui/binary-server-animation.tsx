@@ -1,8 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { motion, AnimatePresence } from "framer-motion"
-import { Image, FileText, File } from "lucide-react"
+import { motion } from "framer-motion"
 
 const TOTAL_BITS = 30
 const NEW_BITS_PER_INTERVAL = 3
@@ -81,62 +80,6 @@ function DataPath({ direction }: { direction: "left" | "right" }) {
         </svg>
     )
 }
-
-const dataTypes = [
-    { icon: Image, color: "text-green-500" },
-    { icon: FileText, color: "text-yellow-500" },
-    { icon: File, color: "text-purple-500" },
-]
-
-function DataPacket({ direction }: { direction: "left" | "right" }) {
-    const DataIcon = dataTypes[Math.floor(Math.random() * dataTypes.length)]
-
-    return (
-        <motion.div
-            className={`absolute top-1/2 -translate-y-1/2 w-12 h-12  rounded-full shadow-lg flex items-center justify-center ${DataIcon.color}`}
-            initial={{
-                x: direction === "right" ? -40 : STREAM_WIDTH + 40,
-                opacity: 0,
-                scale: 0.5,
-            }}
-            animate={{
-                x: direction === "right" ? STREAM_WIDTH + 40 : -40,
-                opacity: [0, 1, 1, 0],
-                scale: [0.5, 1, 1, 0.5],
-            }}
-            transition={{
-                duration: 4,
-                ease: "linear",
-                times: [0, 0.1, 0.9, 1],
-            }}
-        >
-            <DataIcon.icon size={20} />
-        </motion.div>
-    )
-}
-
-function DataTransfer({ direction }: { direction: "left" | "right" }) {
-    const [packets, setPackets] = useState<number[]>([])
-
-    useEffect(() => {
-        const interval = setInterval(() => {
-            setPackets((prev) => [...prev, Date.now()])
-        }, 2000)
-
-        return () => clearInterval(interval)
-    }, [])
-
-    return (
-        <div className="relative w-[450px] h-10 pb-10">
-            <AnimatePresence initial={false}>
-                {packets.map((id) => (
-                    <DataPacket key={id} direction={direction} />
-                ))}
-            </AnimatePresence>
-        </div>
-    )
-}
-
 export default function BinaryDataStreamAnimation() {
     return (
         <div className="flex items-center justify-center h-1/2">

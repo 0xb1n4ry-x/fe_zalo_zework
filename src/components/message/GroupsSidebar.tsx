@@ -6,12 +6,76 @@ import { Button } from "@/components/ui/button"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { useState, useEffect } from "react"
 import {Avatar, AvatarImage} from "@/components/ui/avatar";
+type Tag = {
+  text: string;
+  color: string;
+};
+type Member = {
+  name: string;
+  online: Date | boolean;
+};
+type group = {
+  id: string;
+  groupId : string;
+  name: string
+  avt : string;
+  fullAvt : string;
+  avatar: string;
+  isGroup: boolean;
+  totalMember : number;
+  isActive: boolean
+  displayName: string
+  lastActionTime: number
+  online: boolean
+  unread: number
+  type: string
+  createdAt: Date | boolean
+  members:Member[];
+  createdDate : string
+  lastMessage : {
+    sender: string
+    text: string
+    timestamp: string
+  }
+  tags?: Tag[]
+};
+
+interface GroupsItemProps {
+  groups: {
+    id: string;
+    groupId : string;
+    name: string
+    avatar: string;
+    isGroup: boolean;
+    totalMember : number;
+    isActive: boolean
+    displayName: string
+    lastActionTime: number
+    online: boolean
+    unread: number
+    type: string
+    members:Member[];
+    lastMessage : {
+      sender: string
+      text: string
+      timestamp: string
+    }
+    lastOnline :string
+    tags?: Tag[]
+  }
+  index: number
+  isSelected?: boolean
+  onClick: () => void
+  isCollapsed?: boolean
+
+}
 
 // Custom hook for fetching groups
 function useGroups() {
-  const [groups, setGroups] = useState([]);
+  const [groups, setGroups] = useState<group[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string>();
+
 
   useEffect(() => {
     async function fetchGroups() {
@@ -70,7 +134,11 @@ function useGroups() {
           localStorage.setItem('groupsCacheTime', Date.now().toString());
         }
       } catch (err) {
-        setError(err.message);
+        if (err instanceof Error) {
+          setError(err.message);
+        } else {
+          setError("Đã xảy ra lỗi không xác định.");
+        }
         console.error('Error fetching groups:', err);
 
         // Try to load from cache if API call fails
@@ -126,7 +194,19 @@ function useGroups() {
   return { groups, loading, error };
 }
 
-export default function GroupsSidebar({ onContactSelect, selectedContact, isCollapsed, onToggleCollapse }) {
+
+type GroupsSidebarProps = {
+  onContactSelect: (contact: group) => void;
+  selectedContact: group | null; // ✅ sửa dòng này
+  isCollapsed: boolean;
+  onToggleCollapse: () => void;
+};
+export default function ContactsSidebar({
+                                          onContactSelect,
+                                          selectedContact,
+                                          isCollapsed,
+                                          onToggleCollapse,
+                                        }: GroupsSidebarProps) {
 
   const { groups, loading, error } = useGroups();
 
@@ -221,50 +301,45 @@ export default function GroupsSidebar({ onContactSelect, selectedContact, isColl
               </div>
           ) : (
               // Groups list
-              groups.map((group) => (
+              groups.map((group, index:  number) => (
                   <GroupItem
+                      index={index} //
                       key={group.groupId}
-                      group={{
+                      groups={{
                         id: group.groupId,
+                        groupId: group.groupId,
                         name: group.name,
-                        type: "group", // Default type since the API doesn't provide type
                         avatar: group.avt || group.fullAvt || "/placeholder.svg",
-                        isActive: true, // We don't have this info, so default to true
-                        unread: 0, // We don't have unread count
-                        members: Array(group.totalMember || 0).fill().map((_, i) => ({
-                          name: `Member ${i+1}`,
-                          online: false
+                        isGroup: true,
+                        totalMember: group.totalMember,
+                        displayName: group.name,
+                        isActive: true, // hoặc group.isActive nếu có
+                        lastActionTime: Date.now(), // hoặc group.lastActionTime nếu có
+                        online: true, // hoặc group.online nếu có
+                        unread: 0, // hoặc group.unread nếu bạn có logic
+                        type: "group",
+                        members: Array(group.totalMember || 0).fill(0).map((_, i) => ({
+                          name: `Member ${i + 1}`,
+                          online: false,
                         })),
                         lastMessage: {
                           sender: "System",
                           text: `Nhóm có ${group.totalMember || 0} thành viên`,
-                          timestamp: group.createdDate || "Unknown"
-                        }
+                          timestamp: group.createdDate || "Unknown",
+                        },
+                        lastOnline: group.createdDate,
+                        tags: [
+                          {
+                            text: "Nhóm",
+                            color: "blue",
+                          },
+                        ],
                       }}
-                      isSelected={selectedContact?.name === group.name}
-                      onClick={() =>
-                          onContactSelect({
-                            groupId: group.groupId,
-                            displayName: group.name,
-                            online: true,
-                            avatar: group.avt || group.fullAvt || "/placeholder.svg",
-                            createdDate: group.createdDate,
-                            isGroup: true,
-                            members: Array(group.totalMember || 0).fill().map((_, i) => ({
-                              name: `Member ${i+1}`,
-                              online: Math.random() > 0.7 // Randomly set some members online
-                            })),
-                            lastOnline: group.createdDate,
-                            tags: [
-                              {
-                                text: "Nhóm",
-                                color: "blue",
-                              },
-                            ],
-                          })
-                      }
+                      isSelected={selectedContact?.id === group.groupId}
+                      onClick={() => onContactSelect(group)}
                       isCollapsed={isCollapsed}
                   />
+
               ))
           )}
         </div>
@@ -282,8 +357,8 @@ export default function GroupsSidebar({ onContactSelect, selectedContact, isColl
   )
 }
 
-function GroupItem({ group, isSelected, onClick, isCollapsed }) {
-  const getTypeColor = (type) => {
+function GroupItem({ groups, isSelected, onClick, isCollapsed  } :GroupsItemProps ) {
+  const getTypeColor = (type:string) => {
     switch (type) {
       case "work":
         return "bg-purple-100 text-purple-800"
@@ -298,7 +373,7 @@ function GroupItem({ group, isSelected, onClick, isCollapsed }) {
     }
   }
 
-  const getTypeText = (type) => {
+  const getTypeText = (type:string) => {
     switch (type) {
       case "work":
         return "Công việc"
@@ -320,23 +395,23 @@ function GroupItem({ group, isSelected, onClick, isCollapsed }) {
         <div
             className={`${isCollapsed ? "w-10 h-10" : "w-12 h-12"} rounded-full overflow-hidden shadow-sm transition-all duration-300`}
         >
-          {group.avatar ? (
+          {groups.avatar ? (
                   <Avatar className="h-10 w-10">
-                    <AvatarImage src={group.avatar} alt={group.name} /> </Avatar>
+                    <AvatarImage src={groups.avatar} alt={groups.name} /> </Avatar>
           ) : (
               <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-400 to-blue-600 text-white font-medium">
-                {group.name.charAt(0)}
+                {groups.name.charAt(0)}
               </div>
           )}
         </div>
-        {group.isActive && (
+        {groups.isActive && (
             <div
                 className={`absolute bottom-0 right-0 ${isCollapsed ? "w-3 h-3" : "w-3.5 h-3.5"} bg-green-500 rounded-full border-2 border-white shadow-sm`}
             ></div>
         )}
-        {group.unread > 0 && !isCollapsed && (
+        {groups.unread > 0 && !isCollapsed && (
             <div className="absolute -top-1 -right-1 bg-blue-500 text-white text-xs font-medium rounded-full w-5 h-5 flex items-center justify-center">
-              {group.unread}
+              {groups.unread}
             </div>
         )}
       </div>
@@ -354,26 +429,26 @@ function GroupItem({ group, isSelected, onClick, isCollapsed }) {
                   onClick={onClick}
               >
                 {groupAvatar}
-                {group.unread > 0 && (
+                {groups.unread > 0 && (
                     <div className="absolute -top-1 -right-1 bg-blue-500 text-white text-xs font-medium rounded-full w-4 h-4 flex items-center justify-center">
-                      {group.unread}
+                      {groups.unread}
                     </div>
                 )}
               </div>
             </TooltipTrigger>
             <TooltipContent side="right">
               <div>
-                <div className="font-medium">{group.name}</div>
+                <div className="font-medium">{groups.name}</div>
                 <div className="flex items-center gap-1.5 mt-1">
-                <span className={`text-xs px-1.5 py-0.5 rounded-full ${getTypeColor(group.type)}`}>
-                  {getTypeText(group.type)}
+                <span className={`text-xs px-1.5 py-0.5 rounded-full ${getTypeColor(groups.type)}`}>
+                  {getTypeText(groups.type)}
                 </span>
-                  <span className="text-xs text-gray-500">{group.members.length} thành viên</span>
+                  <span className="text-xs text-gray-500">{groups.members.length} thành viên</span>
                 </div>
                 <div className="text-xs text-gray-600 mt-1">
-                  <span className="font-medium">{group.lastMessage.sender}:</span> {group.lastMessage.text}
+                  <span className="font-medium">{groups.lastMessage.sender}:</span> {groups.lastMessage.text}
                 </div>
-                <div className="text-xs text-gray-500 mt-1">{group.lastMessage.timestamp}</div>
+                <div className="text-xs text-gray-500 mt-1">{groups.lastMessage.timestamp}</div>
               </div>
             </TooltipContent>
           </Tooltip>
@@ -391,20 +466,20 @@ function GroupItem({ group, isSelected, onClick, isCollapsed }) {
         {groupAvatar}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5 flex-wrap">
-            <div className={`font-medium ${isSelected ? "text-blue-700" : "text-gray-800"}`}>{group.name}</div>
-            <span className={`text-xs px-1.5 py-0.5 rounded-full ${getTypeColor(group.type)}`}>
-            {getTypeText(group.type)}
+            <div className={`font-medium ${isSelected ? "text-blue-700" : "text-gray-800"}`}>{groups.name}</div>
+            <span className={`text-xs px-1.5 py-0.5 rounded-full ${getTypeColor(groups.type)}`}>
+            {getTypeText(groups.type)}
           </span>
           </div>
           <div className="flex justify-between items-center mt-0.5">
             <div className="text-xs text-gray-500 truncate">
-              <span className="font-medium">{group.lastMessage.sender}:</span> {group.lastMessage.text}
+              <span className="font-medium">{groups.lastMessage.sender}:</span> {groups.lastMessage.text}
             </div>
-            <div className="text-xs text-gray-400 whitespace-nowrap ml-2">{group.lastMessage.timestamp}</div>
+            <div className="text-xs text-gray-400 whitespace-nowrap ml-2">{groups.lastMessage.timestamp}</div>
           </div>
           <div className="flex items-center gap-1.5 mt-1">
             <div className="flex -space-x-2">
-              {group.members.slice(0, 3).map((member, idx) => (
+              {groups.members.slice(0, 3).map((member:any, idx:number) => (
                   <div
                       key={idx}
                       className={`w-5 h-5 rounded-full border border-white ${member.online ? "bg-green-100" : "bg-gray-100"}`}
@@ -414,13 +489,13 @@ function GroupItem({ group, isSelected, onClick, isCollapsed }) {
                     </div>
                   </div>
               ))}
-              {group.members.length > 3 && (
+              {groups.members.length > 3 && (
                   <div className="w-5 h-5 rounded-full border border-white bg-gray-200 flex items-center justify-center">
-                    <span className="text-[8px] font-medium">+{group.members.length - 3}</span>
+                    <span className="text-[8px] font-medium">+{groups.members.length - 3}</span>
                   </div>
               )}
             </div>
-            <span className="text-xs text-gray-500">{group.totalMember}</span>
+            <span className="text-xs text-gray-500">{groups.totalMember}</span>
           </div>
         </div>
       </div>

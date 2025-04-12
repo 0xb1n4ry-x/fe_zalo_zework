@@ -23,7 +23,7 @@ export interface User {
     isValid: number
     userKey: string
     accountStatus: number
-    oaInfo: null | any
+    oaInfo: null | never
     user_mode: number
     globalId: string
     bizPkg: {
@@ -31,6 +31,6 @@ export interface User {
         pkgId: number
     }
     createdTs: number
-    oa_status: null | any
+    oa_status: null | never
 }
 

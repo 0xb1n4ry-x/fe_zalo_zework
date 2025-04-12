@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 
 interface ToastProps {
+  id: number
   title: string
   description?: string
   duration?: number
@@ -17,8 +18,11 @@ export function useToast() {
 
   useEffect(() => {
     const timer = setInterval(() => {
-
-      setToasts(prevToasts => prevToasts.filter(toast => Date.now() - toast.id < toast.duration))
+      setToasts(prevToasts =>
+          prevToasts.filter(toast =>
+              Date.now() - toast.id < (toast.duration ?? 5000) // dùng 5000ms mặc định nếu toast.duration không có
+          )
+      )
     }, 100)
 
     return () => clearInterval(timer)

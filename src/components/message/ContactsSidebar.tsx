@@ -3,9 +3,31 @@ import { Search, Plus, Users, ChevronLeft, ChevronRight } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import ContactItem from "./ContactItem"
+type Tag = {
+    text: string;
+    color: string;
+};
 
+type Contact = {
+  id: string;
+  name: string;
+  displayName: string;
+  avatar: string;
+    tags?: Tag[]
+};
 
-export default function ContactsSidebar({ onContactSelect, selectedContact, isCollapsed, onToggleCollapse }) {
+type ContactsSidebarProps = {
+  onContactSelect: (contact: Contact) => void;
+  selectedContact: Contact | null;
+  isCollapsed: boolean;
+  onToggleCollapse: () => void;
+};
+export default function ContactsSidebar({
+                                          onContactSelect,
+                                          selectedContact,
+                                          isCollapsed,
+                                          onToggleCollapse,
+                                        }: ContactsSidebarProps) {
 
 
   // Render rate limit error message if that's the issue

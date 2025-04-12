@@ -1,3 +1,4 @@
+"use client"
 export default function WelcomeScreen() {
   return (
     <div className="flex-1 flex flex-col items-center justify-center p-6 bg-white">

@@ -17,6 +17,8 @@ import { useToast } from "@/hooks/use-toast"
 import Cookies from "js-cookie"
 
 interface LoginResponse {
+    isVerified: undefined;
+    email: boolean;
     success: boolean
     message?: string
     user?: {
@@ -127,10 +129,10 @@ function MD5(input: string) {
         }
 
         // Store initial values
-        let aa = a;
-        let bb = b;
-        let cc = c;
-        let dd = d;
+        const aa = a;
+        const bb = b;
+        const cc = c;
+        const dd = d;
 
         // Main loop
         for (let j = 0; j < 64; j++) {
@@ -165,7 +167,7 @@ function MD5(input: string) {
     }
 
     // Convert to hex string
-    const hex = (n) => {
+    const hex = (n: number) => {
         return (n < 16 ? "0" : "") + n.toString(16);
     };
 
@@ -183,7 +185,7 @@ export default function LoginForm() {
     const router = useRouter()
     const [userIP, setUserIP] = useState<string>("")
     const canvasRef = useRef(null);
-    const [fingerprint, setFingerprint] = useState('');
+    const [setFingerprint] = useState('');
     const [signatures, setSignatures] = useState({
         md5: '',
         sha256: ''
@@ -192,7 +194,7 @@ export default function LoginForm() {
     const [isCheckingAuth, setIsCheckingAuth] = useState(true);
     const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-    const generateStandardFingerprint = (ctx) => {
+    const generateStandardFingerprint = (ctx: CanvasRenderingContext2D) => {
         // Clear the canvas
         ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
 
@@ -229,7 +231,7 @@ export default function LoginForm() {
 
             return { md5: md5Hash, sha256: sha256Hash };
         } catch (e) {
-            throw new Error(`Signature computation error: ${e.message}`);
+            throw new Error(`Signature computation error: ${e}`);
         }
     };
 
@@ -315,26 +317,28 @@ export default function LoginForm() {
     // Tách hàm tạo fingerprint thành hàm riêng biệt
     const generateFingerprints = async () => {
         try {
-            const canvas = canvasRef.current;
+            const canvas = canvasRef.current as HTMLCanvasElement | null;
             if (!canvas) return;
 
             const ctx = canvas.getContext('2d');
+            if (!ctx) throw new Error('Cannot get 2D context');
+
             canvas.width = 300;
             canvas.height = 150;
 
-            // Generate fingerprint and get base64 data
             const fp = generateStandardFingerprint(ctx);
+            // @ts-ignore
             setFingerprint(fp);
 
-            // Compute signatures
             const sigs = await computeSignatures(fp);
             setSignatures(sigs);
             console.log(sigs);
 
-        } catch (e) {
+        } catch (e: any) {
             setError(e.message);
         }
     };
+
 
     // Initialize form with react-hook-form and zod validation
     const form = useForm<FormValues>({
@@ -457,8 +461,8 @@ export default function LoginForm() {
 
             // Lưu email riêng biệt để dễ truy cập
             if (data.email) {
-                localStorage.setItem("userEmail", data.email);
-                sessionStorage.setItem("userEmail", data.email);
+                localStorage.setItem("userEmail", String(data.email));
+                sessionStorage.setItem("userEmail", String(data.email));
             }
 
             // Lưu trạng thái xác thực

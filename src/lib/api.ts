@@ -1,5 +1,6 @@
 import type {QRCodeData, UserData, zaloAccount} from '@/types'
 import axios from 'axios'
+import {Key} from "react";
 
 export async function generateQRCode(): Promise<QRCodeData> {
 
@@ -13,9 +14,12 @@ export async function generateQRCode(): Promise<QRCodeData> {
 }
 
 
+export type ScanStatusResponse = {
+    status: 'waiting' | 'scanned' | 'scanned-confirm' | 'expired';
+    [key: string]: any; // nếu response có thêm dữ liệu
+}
 
-
-export async function checkScanStatus(sessionId: string):Promise<void> {
+export async function checkScanStatus(sessionId: string | undefined):Promise<ScanStatusResponse> {
     const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}api/waiting-scan`, {
         method: 'POST',
         headers: {
@@ -25,8 +29,12 @@ export async function checkScanStatus(sessionId: string):Promise<void> {
     })
     return response.json()
 }
-
-export async function confirmLogin(sessionId: string, userId: string | undefined): Promise<void> {
+export type ConfirmLoginResponse = {
+    success: boolean;
+    message?: string;
+    userData?: any; // tuỳ vào backend trả gì
+}
+export async function confirmLogin(sessionId: string | undefined, userId: string | undefined): Promise<ConfirmLoginResponse> {
     const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}api/waiting-confirm`, {
         method: 'POST',
         headers: {
@@ -72,27 +80,19 @@ export async function findInfoByPN(p:string): Promise<void> {
 
 export interface Chat {
     userId: Key | null | undefined
-    lastActionTime(lastActionTime: any): import("react").ReactNode
-    displayName: any
+    lastActionTime(lastActionTime: never): import("react").ReactNode
+    displayName: never
     id: string
     name: string
     lastMessage: string
     time: string
     avatar: string
 }
-interface ApiResponse {
-    success: boolean
-    data: {
-        error_code: number
-        error_message: string
-        data: Chat[]
-    }
-}
 
 
 
 // In your lib/api.ts or similar file
-export const fetchWithRetry = async (url: string, options: RequestInit, maxRetries = 3): Promise<any> => {
+export const fetchWithRetry = async (url: string, options: RequestInit, maxRetries = 3): Promise<never> => {
     let retries = 0;
     let lastError;
 
@@ -130,6 +130,7 @@ export const fetchWithRetry = async (url: string, options: RequestInit, maxRetri
                 throw new Error(`HTTP error! Status: ${response.status}`);
             }
 
+            // @ts-ignore
             return await response.json();
         } catch (error) {
             lastError = error;
@@ -148,6 +149,10 @@ export const fetchWithRetry = async (url: string, options: RequestInit, maxRetri
 
     throw lastError;
 };
+interface ApiResponse<T> {
+    success: boolean;
+    data: T;
+}
 export const fetchChats = async () => {
     try {
         // Add localStorage error handling as we discussed earlier
@@ -161,7 +166,9 @@ export const fetchChats = async () => {
         try {
             ld = JSON.parse(rawData);
         } catch (e) {
-            throw new Error("Invalid data in localStorage");
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-expect-error
+            throw new Error("Invalid data in localStorage", e);
         }
 
         if (!Array.isArray(ld) || ld.length === 0) {
@@ -173,7 +180,7 @@ export const fetchChats = async () => {
         const i = ld[0].imei;
 
         // Use our improved fetchWithRetry function
-        const response = await fetchWithRetry(`${process.env.NEXT_PUBLIC_API_URL}api/gc`, {
+        const response: ApiResponse<{data : any[]}> = await fetchWithRetry(`${process.env.NEXT_PUBLIC_API_URL}api/gc`, {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({i, e, s})
@@ -213,7 +220,9 @@ export const fetchGroupsChat = async () => {
         try {
             ld = JSON.parse(rawData);
         } catch (e) {
-            throw new Error("Invalid data in localStorage");
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-expect-error
+            throw new Error("Invalid data in localStorage", e);
         }
 
         if (!Array.isArray(ld) || ld.length === 0) {
@@ -226,7 +235,7 @@ export const fetchGroupsChat = async () => {
 
         // Use our improved fetchWithRetry function
 
-        const responseGroups = await fetchWithRetry(`${process.env.NEXT_PUBLIC_API_URL}api/gag`, {
+        const responseGroups : ApiResponse<{data : any[]}> = await fetchWithRetry(`${process.env.NEXT_PUBLIC_API_URL}api/gag`, {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({i, e, s})
@@ -252,25 +261,6 @@ export const fetchGroupsChat = async () => {
         }
     }
 };
-export const searchChats = async (query: string): Promise<Chat[]> => {
-    try {
-        const response = await fetchWithRetry("/chats/search", { q: query })
-        if (response.success && Array.isArray(response.data.data)) {
-            return response.data.data
-        } else {
-            throw new Error("Invalid data format received from API")
-        }
-    } catch (error) {
-        if (axios.isAxiosError(error)) {
-            if (error.response?.status === 429) {
-                throw new Error("Too many requests. Please try again later.")
-            }
-            throw new Error(`Failed to search chats: ${error.message}`)
-        } else {
-            throw new Error("An unexpected error occurred while searching chats")
-        }
-    }
-}
 export async function getZaloAccounts(userId: string): Promise<zaloAccount[]> {
     try {
         const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/get-accounts-zalo`, {

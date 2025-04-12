@@ -1,6 +1,11 @@
 "use client"
 
-import {useEffect, useRef, useState} from "react"
+import {JSXElementConstructor, Key, ReactElement, ReactNode, ReactPortal,
+  SetStateAction,
+  useEffect,
+  useRef,
+  useState
+} from "react"
 import Image from "next/image"
 import {
   AlertCircle,
@@ -55,32 +60,84 @@ import {Collapsible, CollapsibleContent, CollapsibleTrigger} from "@/components/
 import {Label} from "@/components/ui/label"
 import {Textarea} from "@/components/ui/textarea"
 import {UserAvatar} from "./UserAvatar"
-import useSocket from "@/hooks/useSocket";
+type Member = {
+  id: string;
+  name: string;
+  avatar?: string;
+  online?: boolean;
+  // ... các field khác
+};
+type QuickCommand = {
+  id: string;
+  command: string;
+  description: string;
+  template?: string;
+  isDefault?: boolean;
+  icon?: React.ReactNode;
+};
+interface Message {
+  id: number;
+  sender: string;
+  text: string;
+  time: string;
+  reactions: any[]; // hoặc cụ thể hơn nếu bạn có
+  isPinned: boolean;
+  isRecalled: boolean;
+  file: Attachment[];
+  attachments?: Attachment[];
+}
+type Contact = {
+  id: string;
+  name: string;
+  avatar?: string;
+  displayName?: string;
+  tags?: Tag[];
+  // ... các field khác
+};
+type Tag = {
+  label?: string;
+  color: string;
+  text?: string;
+};
 
-export default function ChatInterface({ contact }) {
-  const [message, setMessage] = useState("")
-  const messagesEndRef = useRef(null)
+
+type Attachment = {
+  id? :string;
+  name? :string;
+  type?:string,
+  length?:string,
+  file?:File,
+  url?:string,
+  caption ?:string,
+  size?: number;
+}
+// @ts-ignore
+export default function ChatInterface({contact}) {
+  const [query, setQuery] = useState<string>("");
+  const [message, setMessage] = useState(""); // nội dung đang soạn
+  const [messages, setMessages] = useState<Message[]>([]);
   const [showChatInfo, setShowChatInfo] = useState(false)
   const [showQuickCommands, setShowQuickCommands] = useState(false)
   const [quickCommandFilter, setQuickCommandFilter] = useState("")
-  const inputRef = useRef(null)
+  const inputRef = useRef<HTMLInputElement | null>(null);
+  const [customQuickCommands, setCustomQuickCommands] = useState<QuickCommand[]>([]);
+  const [editingTemplate, setEditingTemplate] = useState<QuickCommand | null>(null);
   const [showAddTemplate, setShowAddTemplate] = useState(false)
   const [newTemplate, setNewTemplate] = useState({command: "", description: "", template: ""})
-  const [editingTemplate, setEditingTemplate] = useState(null)
   const [showManageTemplates, setShowManageTemplates] = useState(false)
+  const [tagFilter, setTagFilter] = useState<string>(""); // ✅ Khai báo chuẩn
 
-  const [attachments, setAttachments] = useState([])
+  const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [showAttachmentOptions, setShowAttachmentOptions] = useState(false)
-  const fileInputRef = useRef(null)
-  const imageInputRef = useRef(null)
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const imageInputRef = useRef<HTMLInputElement | null>(null);
 
   // Thêm state để quản lý dropdown gắn thẻ người dùng
   const [showTagSuggestions, setShowTagSuggestions] = useState(false)
-  const [tagFilter, setTagFilter] = useState("")
   const [tagSuggestions, setTagSuggestions] = useState([])
   const [cursorPosition, setCursorPosition] = useState(0)
   const [uploadProgress, setUploadProgress] = useState({});
-  const [isUploading, setIsUploading] = useState(false);
+  const [setIsUploading] = useState(false);
   // Thêm state để quản lý thẻ người dùng
   const [showTagManager, setShowTagManager] = useState(false)
   const [availableTags, setAvailableTags] = useState([
@@ -96,9 +153,6 @@ export default function ChatInterface({ contact }) {
   const [contactTags, setContactTags] = useState(contact.tags || [])
 
   // Sample messages for demonstration
-  const [messages, setMessages] = useState([
-
-  ])
 
 
 
@@ -179,44 +233,27 @@ export default function ChatInterface({ contact }) {
   ]
 
   // Custom quick commands (would be stored in localStorage or a database in a real app)
-  const [customQuickCommands, setCustomQuickCommands] = useState([
-    {
-      id: "custom1",
-      command: "/deadline",
-      description: "Thông báo deadline",
-      template: "Xin nhắc deadline dự án [tên dự án] là [ngày]. Vui lòng hoàn thành đúng hạn.",
-      icon: <Clock size={16} className="text-orange-500"/>,
-      isDefault: false,
-    },
-    {
-      id: "custom2",
-      command: "/address",
-      description: "Địa chỉ công ty",
-      template: "Địa chỉ công ty: Tầng 8, Tòa nhà Vinipr, 123 Đường Nguyễn Huệ, Quận 1, TP.HCM",
-      icon: <MapPin size={16} className="text-blue-500"/>,
-      isDefault: false,
-    },
-  ])
+
 
   // Combine default and custom commands
-  const quickCommands = [...defaultQuickCommands, ...customQuickCommands]
-
+  const quickCommands = [...customQuickCommands]
+  const messagesEndRef = useRef<HTMLDivElement | null>(null);
   // Scroll to bottom when messages change
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({behavior: "smooth"})
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages])
 
   // Thêm hàm để xử lý thêm/xóa thẻ
-  const addTagToContact = (tag) => {
+  const addTagToContact = (tag: { id?: number; text: any; color?: string }) => {
     // Kiểm tra xem thẻ đã tồn tại chưa
-    if (!contactTags.some((t) => t.text === tag.text)) {
+    if (!contactTags.some((t: { text: any }) => t.text === tag.text)) {
       const updatedTags = [...contactTags, tag]
       setContactTags(updatedTags)
     }
   }
 
-  const removeTagFromContact = (tagText) => {
-    const updatedTags = contactTags.filter((tag) => tag.text !== tagText)
+  const removeTagFromContact = (tagText: any) => {
+    const updatedTags = contactTags.filter((tag: { text: any }) => tag.text !== tagText)
     setContactTags(updatedTags)
   }
 
@@ -234,7 +271,7 @@ export default function ChatInterface({ contact }) {
   }
 
   // Thêm hàm để lấy màu thẻ
-  const getTagColorClass = (color) => {
+  const getTagColorClass = (color: string) => {
     switch (color) {
       case "blue":
         return "bg-blue-100 text-blue-800 border-blue-200"
@@ -261,7 +298,7 @@ export default function ChatInterface({ contact }) {
   const [currentGallery, setCurrentGallery] = useState([])
 
   // Thêm hàm để mở modal xem ảnh
-  const openImageViewer = (images, index = 0) => {
+  const openImageViewer = (images: SetStateAction<never[]>, index = 0) => {
     setCurrentGallery(images)
     setSelectedImageIndex(index)
     setImageViewerOpen(true)
@@ -275,7 +312,7 @@ export default function ChatInterface({ contact }) {
   }
 
   // Thêm hàm để điều hướng ảnh trong modal
-  const navigateImage = (direction) => {
+  const navigateImage = (direction: string) => {
     if (direction === "next") {
       setSelectedImageIndex((prev) => (prev + 1) % currentGallery.length)
     } else {
@@ -286,72 +323,72 @@ export default function ChatInterface({ contact }) {
   // Sửa lại phần xử lý file và hiển thị đính kèm
 
   // Thêm state để lưu trữ nội dung xem trước của file
-  const [filePreviewContents, setFilePreviewContents] = useState({})
+  const [filePreviewContents, setFilePreviewContents] = useState<Record<string, string>>({});
   const [showFilePreview, setShowFilePreview] = useState(false)
-  const [currentPreviewFile, setCurrentPreviewFile] = useState(null)
+
+  const [currentPreviewFile, setCurrentPreviewFile] = useState<Attachment | null>(null);
 
   // Thêm hàm để đọc nội dung file văn bản
-  const readTextFile = (file) => {
+  const readTextFile = (file: unknown) => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader()
       reader.onload = (e) => {
+        // @ts-ignore
         resolve(e.target.result)
       }
       reader.onerror = (e) => {
         reject(e)
       }
-      reader.readAsText(file)
+      reader.readAsText(file as Blob)
     })
   }
 
   // Thay đổi hàm handleFileSelect để xử lý file tốt hơn
-  const handleFileSelect = (e) => {
-    const files = Array.from(e.target.files || [])
-    if (files.length === 0) return
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
 
     const newAttachments = files.map((file) => {
-      // Xác định loại file
-      const isImage = file.type.startsWith("image/")
+      const isImage = file.type.startsWith("image/");
       const isTextFile =
           file.type === "text/plain" ||
           file.name.endsWith(".txt") ||
           file.name.endsWith(".doc") ||
           file.name.endsWith(".docx") ||
           file.type === "application/msword" ||
-          file.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+          file.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
 
-      // Tạo một đối tượng đính kèm mới
       const attachment = {
         id: Date.now() + Math.random().toString(36).substring(2, 9),
         file,
         type: isImage ? "image" : isTextFile ? "text" : "file",
         name: file.name,
         url: URL.createObjectURL(file),
-        caption: "", // Thêm trường caption
-      }
+        caption: "",
+        size: file.size,
+      };
 
-      // Nếu là file văn bản, đọc nội dung để xem trước
       if (isTextFile) {
         readTextFile(file)
             .then((content) => {
-              // Lưu nội dung xem trước (giới hạn 500 ký tự)
+              const text = content as string; // ✅ ép kiểu thủ công
+
               setFilePreviewContents((prev) => ({
                 ...prev,
-                [attachment.id]: content.substring(0, 500) + (content.length > 500 ? "..." : ""),
-              }))
-            })
-            .catch((err) => {
-              console.error("Không thể đọc file:", err)
+                [attachment.id]: text.substring(0, 500) + (text.length > 500 ? "..." : ""),
+              }));
             })
       }
 
-      return attachment
-    })
+      return attachment;
+    });
 
-    setAttachments((prev) => [...prev, ...newAttachments])
-    // Reset input để có thể chọn lại cùng một file
-    e.target.value = null
-  }
+    setAttachments((prev) => [...prev, ...newAttachments]);
+
+    // ✅ Reset đúng kiểu
+    e.target.value = "";
+  };
+
 
   // Thêm hàm xử lý dán ảnh từ clipboard sau hàm handleFileSelect
   const handlePasteFromClipboard = async () => {
@@ -363,6 +400,7 @@ export default function ChatInterface({ contact }) {
         for (const type of item.types) {
           if (type.startsWith("image/")) {
             const blob = await item.getType(type)
+            // @ts-ignore
             const file = new File([blob], `pasted-image-${Date.now()}.png`, {type})
 
             const newAttachment = {
@@ -373,7 +411,7 @@ export default function ChatInterface({ contact }) {
               url: URL.createObjectURL(file),
               caption: "", // Thêm trường caption
             }
-
+            // @ts-ignore
             setAttachments((prev) => [...prev, newAttachment])
             hasImage = true
             break
@@ -391,7 +429,7 @@ export default function ChatInterface({ contact }) {
   }
 
   // Thêm hàm xử lý sự kiện paste trên toàn bộ component
-  const handlePaste = (e) => {
+  const handlePaste = (e: { clipboardData: { items: any }; preventDefault: () => void }) => {
     const items = e.clipboardData.items
     let hasImage = false
 
@@ -406,7 +444,7 @@ export default function ChatInterface({ contact }) {
           url: URL.createObjectURL(file),
           caption: "", // Thêm trường caption
         }
-
+        // @ts-ignore
         setAttachments((prev) => [...prev, newAttachment])
         hasImage = true
         break
@@ -420,55 +458,57 @@ export default function ChatInterface({ contact }) {
 
   // Thêm useEffect để xử lý sự kiện paste
   useEffect(() => {
+    // @ts-ignore
     document.addEventListener("paste", handlePaste)
     return () => {
+      // @ts-ignore
       document.removeEventListener("paste", handlePaste)
     }
   }, [])
 
-
-  useEffect(() => {
-    // Cleanup function để giải phóng các URL đối tượng khi component unmount
-    return () => {
-      attachments.forEach((attachment) => {
-        if (attachment.url && attachment.url.startsWith("blob:")) {
-          URL.revokeObjectURL(attachment.url)
-        }
-      })
-    }
-  }, [attachments])
+  //
+  // useEffect(() => {
+  //   // Cleanup function để giải phóng các URL đối tượng khi component unmount
+  //   return () => {
+  //     attachments.forEach((attachment) => {
+  //       if (attachment.url && attachment.url.startsWith("blob:")) {
+  //         URL.revokeObjectURL(attachment.url)
+  //       }
+  //     })
+  //   }
+  // }, [attachments])
 
   // Sửa lại phần hiển thị đính kèm trong tin nhắn
 
   // Sửa lại cách hiển thị đính kèm trong tin nhắn
-  const renderAttachment = (attachment) => {
-    if (attachment.type === "image") {
-      return (
-          <div className="max-w-xs mb-2">
-            <img
-                src={attachment.url || "/placeholder.svg"}
-                alt={attachment.name || "Attached image"}
-                className="w-full h-auto object-contain max-h-[200px]"
-            />
-          </div>
-      )
-    } else {
-      return (
-          <a
-              href={attachment.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-2 p-2 rounded-md bg-gray-100 hover:bg-gray-200 mb-2 max-w-xs"
-          >
-            <FileText size={16} className="text-gray-500"/>
-            <div className="text-sm truncate text-gray-700">{attachment.name}</div>
-          </a>
-      )
-    }
-  }
+  // const renderAttachment = (attachment) => {
+  //   if (attachment.type === "image") {
+  //     return (
+  //         <div className="max-w-xs mb-2">
+  //           <img
+  //               src={attachment.url || "/placeholder.svg"}
+  //               alt={attachment.name || "Attached image"}
+  //               className="w-full h-auto object-contain max-h-[200px]"
+  //           />
+  //         </div>
+  //     )
+  //   } else {
+  //     return (
+  //         <a
+  //             href={attachment.url}
+  //             target="_blank"
+  //             rel="noopener noreferrer"
+  //             className="flex items-center gap-2 p-2 rounded-md bg-gray-100 hover:bg-gray-200 mb-2 max-w-xs"
+  //         >
+  //           <FileText size={16} className="text-gray-500"/>
+  //           <div className="text-sm truncate text-gray-700">{attachment.name}</div>
+  //         </a>
+  //     )
+  //   }
+  // }
 
   // Hàm để hiển thị ảnh trong tin nhắn theo kiểu Facebook
-  const renderImageGrid = (attachments, sender) => {
+  const renderImageGrid = (attachments: any[], sender: any) => {
     // Lọc ra chỉ các attachment là ảnh
     const images = attachments.filter((att) => att.type === "image")
 
@@ -481,7 +521,9 @@ export default function ChatInterface({ contact }) {
     if (images.length === 1) {
       // Một ảnh: hiển thị đầy đủ với chú thích
       return (
-          <div className="cursor-pointer mb-2 relative" onClick={() => openImageViewer(imageUrls, 0)}>
+          <div className="cursor-pointer mb-2 relative" onClick={() =>
+              // @ts-ignore
+              openImageViewer(imageUrls, 0)}>
             <img
                 src={images[0].url || "/placeholder.svg"}
                 alt={images[0].name || "Attached image"}
@@ -503,6 +545,7 @@ export default function ChatInterface({ contact }) {
                 <div
                     key={image.id}
                     className="cursor-pointer aspect-square relative"
+                    // @ts-ignore
                     onClick={() => openImageViewer(imageUrls, index)}
                 >
                   <img
@@ -524,7 +567,10 @@ export default function ChatInterface({ contact }) {
       // Ba ảnh: 1 lớn bên trái, 2 nhỏ bên phải
       return (
           <div className="grid grid-cols-2 gap-1 mb-2">
-            <div className="cursor-pointer row-span-2 relative" onClick={() => openImageViewer(imageUrls, 0)}>
+            // @ts-ignore
+            <div className="cursor-pointer row-span-2 relative" onClick={() =>
+                // @ts-ignore
+                openImageViewer(imageUrls, 0)}>
               <img
                   src={images[0].url || "/placeholder.svg"}
                   alt={images[0].name || "Image 1"}
@@ -537,7 +583,10 @@ export default function ChatInterface({ contact }) {
                   </div>
               )}
             </div>
-            <div className="cursor-pointer relative" onClick={() => openImageViewer(imageUrls, 1)}>
+            // @ts-ignore
+            <div className="cursor-pointer relative" onClick={() =>
+                // @ts-ignore
+                openImageViewer(imageUrls, 1)}>
               <img
                   src={images[1].url || "/placeholder.svg"}
                   alt={images[1].name || "Image 2"}
@@ -550,7 +599,10 @@ export default function ChatInterface({ contact }) {
                   </div>
               )}
             </div>
-            <div className="cursor-pointer relative" onClick={() => openImageViewer(imageUrls, 2)}>
+
+            <div className="cursor-pointer relative" onClick={() =>
+                // @ts-ignore
+                openImageViewer(imageUrls, 2)}>
               <img
                   src={images[2].url || "/placeholder.svg"}
                   alt={images[2].name || "Image 3"}
@@ -573,6 +625,7 @@ export default function ChatInterface({ contact }) {
                 <div
                     key={image.id}
                     className="cursor-pointer aspect-square relative"
+                    // @ts-ignore
                     onClick={() => openImageViewer(imageUrls, index)}
                 >
                   <img
@@ -598,7 +651,9 @@ export default function ChatInterface({ contact }) {
                 <div
                     key={image.id}
                     className={`cursor-pointer ${index === 0 ? "row-span-2" : ""} relative`}
-                    onClick={() => openImageViewer(imageUrls, index)}
+                    onClick={() =>
+                        // @ts-ignore
+                        openImageViewer(imageUrls, index)}
                 >
                   <img
                       src={image.url || "/placeholder.svg"}
@@ -614,7 +669,9 @@ export default function ChatInterface({ contact }) {
                   )}
                 </div>
             ))}
-            <div className="cursor-pointer relative" onClick={() => openImageViewer(imageUrls, 3)}>
+            <div className="cursor-pointer relative" onClick={() =>
+                // @ts-ignore
+                openImageViewer(imageUrls, 3)}>
               <img
                   src={images[3].url || "/placeholder.svg"}
                   alt={images[3].name || "Image 4"}
@@ -636,7 +693,10 @@ export default function ChatInterface({ contact }) {
   }
 
   // Cập nhật hàm renderFileAttachments để hiển thị xem trước file văn bản
-  const renderAttachmentWithProgress = (attachment) => {
+  const renderAttachmentWithProgress = (attachment: any, sender: string) => {
+    
+
+    // @ts-ignore
     const progress = uploadProgress[attachment.name] || 0;
     const isUploading = progress > 0 && progress < 100;
 
@@ -650,8 +710,9 @@ export default function ChatInterface({ contact }) {
                       alt={attachment.name}
                       className="w-full h-full object-cover"
                       onError={(e) => {
-                        e.target.onerror = null;
-                        e.target.src = "/placeholder.svg?height=80&width=80&text=IMG";
+                        const target = e.target as HTMLImageElement;
+                        target.onerror = null;
+                        target.src = "/placeholder.svg?height=80&width=80&text=IMG";
                       }}
                   />
 
@@ -675,9 +736,12 @@ export default function ChatInterface({ contact }) {
                     className="w-full text-xs p-1 border-t border-gray-200"
                     value={attachment.caption || ""}
                     onChange={(e) => {
-                      const updatedAttachments = attachments.map((att) =>
+                      // @ts-ignore
+                      const updatedAttachments = attachments.map((att: { id: Key | null | undefined }) =>
+                          // @ts-ignore
                           att.id === attachment.id ? { ...att, caption: e.target.value } : att
                       );
+                      // @ts-ignore
                       setAttachments(updatedAttachments);
                     }}
                 />
@@ -717,15 +781,18 @@ export default function ChatInterface({ contact }) {
     );
   };
 
-  const removeAttachment = (id) => {
-    setAttachments(attachments.filter((attachment) => attachment.id !== id))
+  const removeAttachment = (id: any) => {
+    setAttachments((attachments ?? []).filter((attachment) => attachment.id !== id));
   }
   const uploadFileToS3 = async (file: XMLHttpRequestBodyInit | Document | null | undefined) => {
     try {
       // Cập nhật trạng thái tiến trình upload bắt đầu ở 0%
+      if (!file) return;
+      const realFile = file as File;
       setUploadProgress(prev => ({
         ...prev,
-        [file.name]: 0
+
+        [realFile?.name ?? "unknown"]: 0,
       }));
 
 
@@ -736,8 +803,10 @@ export default function ChatInterface({ contact }) {
         },
 
         body: JSON.stringify({
-          fileName: file.name,
-          fileType: file.type,
+
+          fileName: realFile.name,
+
+          fileType: realFile.type,
 
         }),
       });
@@ -758,7 +827,8 @@ export default function ChatInterface({ contact }) {
             const percentComplete = Math.round((event.loaded / event.total) * 100);
             setUploadProgress(prev => ({
               ...prev,
-              [file.name]: percentComplete
+
+              [realFile.name]: percentComplete
             }));
           }
         };
@@ -768,7 +838,8 @@ export default function ChatInterface({ contact }) {
             // Cập nhật tiến trình đạt 100% khi hoàn thành
             setUploadProgress(prev => ({
               ...prev,
-              [file.name]: 100
+
+              [realFile.name]: 100
             }));
 
             resolve({
@@ -785,10 +856,11 @@ export default function ChatInterface({ contact }) {
         };
 
         xhr.open('PUT', uploadUrl, true);
-        if ("type" in file) {
-          xhr.setRequestHeader('Content-Type', file.type);
+        // @ts-ignore
+        if ("type" in realFile) {
+          xhr.setRequestHeader('Content-Type', realFile.type);
         }
-        xhr.send(file);
+        xhr.send(realFile);
 
       });
     } catch (error) {
@@ -796,10 +868,11 @@ export default function ChatInterface({ contact }) {
       throw error;
     }
   };
-  const handleSendMessage = async (e) => {
+  const handleSendMessage = async (e: { preventDefault: () => void }) => {
     e.preventDefault()
     if (message.trim() || attachments.length > 0) {
       // Thiết lập trạng thái đang upload
+      // @ts-ignore
       setIsUploading(true);
       const rawData = localStorage.getItem('dataZalo');
       let ld;
@@ -808,7 +881,8 @@ export default function ChatInterface({ contact }) {
           ld = JSON.parse(rawData);
         }
       } catch (e) {
-        throw new Error("Invalid data in localStorage");
+        // @ts-ignore
+        throw new Error("Invalid data in localStorage",e );
       }
 
       if (!Array.isArray(ld) || ld.length === 0) {
@@ -830,14 +904,16 @@ export default function ChatInterface({ contact }) {
             try {
               const payloadFile = {uid : uid, e : e, i: i, s: s, isgroup : contact.isGroup};
               // Upload file lên S3
+              // @ts-ignore
               const { publicUrl } = await uploadFileToS3(attachment.file);
 
               // Thêm thông tin file đã upload vào danh sách
+              // @ts-ignore
               uploadedAttachments.push({
                 id: attachment.id,
                 type: attachment.type,
                 name: attachment.name,
-                size: attachment.file.size,
+                size: attachment.file?.size ?? 0,
                 url: publicUrl, // Sử dụng URL S3 thay vì URL cục bộ
                 caption: attachment.caption,
               });
@@ -861,15 +937,15 @@ export default function ChatInterface({ contact }) {
       }catch (error) {
         console.log(error)
       }
-        const newMessage = {
-          id: messages.length + 1,
-          sender: "me",
-          text: message,
-          time: new Date().toLocaleTimeString([], {hour: "2-digit", minute: "2-digit"}),
-          reactions: [],
-          isPinned: false,
-          isRecalled: false,
-          file: uploadedAttachments,
+      const newMessage: Message = {
+        id: Date.now(),
+        sender: "You",
+        text: message.trim(), // ✅ đúng kiểu string
+        time: new Date().toISOString(),
+        reactions: [],
+        isPinned: false,
+        isRecalled: false,
+        file: uploadedAttachments,
         };
 
 
@@ -903,12 +979,13 @@ export default function ChatInterface({ contact }) {
         console.error('Error sending data:', error);
       }
       setMessages([...messages, newMessage])
-      setMessage("")
+      setMessages([]);
+      // @ts-ignore
       setAttachments([])
       setUploadProgress({});
     }
   }
-  const addReaction = (messageId, emoji) => {
+  const addReaction = (messageId: number, emoji: string) => {
     setMessages(
         messages.map((msg) => {
           if (msg.id === messageId) {
@@ -942,7 +1019,7 @@ export default function ChatInterface({ contact }) {
     )
   }
 
-  const recallMessage = (messageId) => {
+  const recallMessage = (messageId: number) => {
     setMessages(
         messages.map((msg) => {
           if (msg.id === messageId) {
@@ -954,10 +1031,10 @@ export default function ChatInterface({ contact }) {
   }
 
   // Thêm hàm để xử lý khi nhập @ trong tin nhắn
-  const handleInputChange = (e) => {
+  const handleInputChange = (e: { target: { value: any; selectionStart: any } }) => {
     const value = e.target.value
     const cursorPos = e.target.selectionStart
-    setMessage(value)
+    setMessages(value)
     setCursorPosition(cursorPos)
 
     // Kiểm tra xem có đang nhập @ không và đang ở trong cuộc trò chuyện nhóm
@@ -968,10 +1045,11 @@ export default function ChatInterface({ contact }) {
       const query = textBeforeCursor.substring(atSignIndex + 1)
       // Nếu có khoảng trắng sau @ thì không hiển thị gợi ý
       if (!query.includes(" ")) {
-        setTagFilter(query.toLowerCase())
+        setTagFilter(query.toString().toLowerCase());
+
         // Nếu là nhóm, lấy danh sách thành viên từ contact.members
         if (contact.members && contact.members.length > 0) {
-          const filtered = contact.members.filter((member) => member.name.toLowerCase().includes(query.toLowerCase()))
+          const filtered = contact.members.filter((member: Member) => member.name.toLowerCase().includes(query.toLowerCase()))
           setTagSuggestions(filtered)
           setShowTagSuggestions(filtered.length > 0)
           setShowQuickCommands(false)
@@ -995,7 +1073,7 @@ export default function ChatInterface({ contact }) {
   }
 
   // Thêm hàm để chèn tag vào tin nhắn
-  const insertTag = (contact) => {
+  const insertTag = (contact: Contact) => {
     const beforeCursor = message.substring(0, cursorPosition)
     const atSignIndex = beforeCursor.lastIndexOf("@")
 
@@ -1008,17 +1086,17 @@ export default function ChatInterface({ contact }) {
 
       // Focus lại vào input và đặt con trỏ sau tag
       setTimeout(() => {
-        if (inputRef.current) {
-          inputRef.current.focus()
-          const newCursorPos = atSignIndex + contact.displayName.length + 2 // +2 for @ and space
-          inputRef.current.setSelectionRange(newCursorPos, newCursorPos)
+        if (inputRef.current && contact.displayName) {
+          inputRef.current.focus();
+          const newCursorPos = atSignIndex + contact.displayName.length + 2;
+          inputRef.current.setSelectionRange(newCursorPos, newCursorPos);
         }
       }, 0)
     }
   }
 
   // Thêm hàm để định dạng tin nhắn với các tag
-  const formatMessageWithTags = (text) => {
+  const formatMessageWithTags = (text: string) => {
     if (!text) return null
 
     // Tìm tất cả các tag trong tin nhắn
@@ -1051,8 +1129,8 @@ export default function ChatInterface({ contact }) {
     return parts.length > 0 ? parts : text
   }
 
-  const insertQuickCommand = (template) => {
-    setMessage(template)
+  const insertQuickCommand = (cmd:QuickCommand) => {
+    setMessage(cmd.description );
     setShowQuickCommands(false)
     inputRef.current?.focus()
   }
@@ -1096,24 +1174,25 @@ export default function ChatInterface({ contact }) {
     }
   }
 
-  const handleEditTemplate = (template) => {
+  const handleEditTemplate = (template:QuickCommand) => {
     setEditingTemplate(template)
     setNewTemplate({
-      command: template.command,
-      description: template.description,
-      template: template.template,
-    })
+      command: template.command ?? "",
+      description: template.description ?? "",
+      template: template.template ?? "",
+    });
     setShowManageTemplates(false)
     setShowAddTemplate(true)
   }
 
-  const handleDeleteTemplate = (templateId) => {
-    setCustomQuickCommands(customQuickCommands.filter((cmd) => cmd.id !== templateId))
-  }
+  const handleDeleteTemplate = (templateId: string) => {
+    setCustomQuickCommands(customQuickCommands.filter((cmd) => cmd.id !== templateId));
+  };
 
   // Get pinned messages
   const pinnedMessages = messages.filter((msg) => msg.isPinned)
 
+  // @ts-ignore
   return (
       <div className="flex-1 flex flex-col bg-white">
         {/* Chat Header */}
@@ -1124,7 +1203,7 @@ export default function ChatInterface({ contact }) {
                 <UserAvatar
                     avatar={contact.avatar}
                     displayName={contact.displayName}
-                    // isActive={contact.isActive}
+                    isActive={contact.isActive}
                     lastActionTime={contact.lastActionTime}
                 />
               </div>
@@ -1136,7 +1215,7 @@ export default function ChatInterface({ contact }) {
               <div className="flex items-center gap-1.5 flex-wrap">
                 <div className="font-semibold text-gray-800">{contact.displayName}</div>
                 {contact.tags &&
-                    contact.tags.map((tag, idx) => (
+                    contact.tags.map((tag:Tag, idx: number) => (
                         <span
                             key={idx}
                             className={`text-xs px-1.5 py-0.5 rounded-full ${
@@ -1248,13 +1327,14 @@ export default function ChatInterface({ contact }) {
                             {msg.text && <p className="text-sm mb-2">{formatMessageWithTags(msg.text)}</p>}
 
                             {/* Display attachments */}
-                            {msg.attachments && msg.attachments.length > 0 && (
+                            const attachments = msg.attachments ?? msg.file ?? [];
+                            {attachments.length > 0 && (
                                 <>
                                   {/* Hiển thị ảnh theo kiểu Facebook */}
-                                  {renderImageGrid(msg.attachments, msg.sender)}
+                                  {renderImageGrid(attachments, msg.sender)}
 
                                   {/* Hiển thị các file không phải ảnh */}
-                                  {renderAttachmentWithProgress(msg.attachments, msg.sender)}
+                                  {renderAttachmentWithProgress(attachments, msg.sender)}
                                 </>
                             )}
                           </>
@@ -1446,8 +1526,9 @@ export default function ChatInterface({ contact }) {
                                       alt={attachment.name}
                                       className="w-full h-full object-cover"
                                       onError={(e) => {
-                                        e.target.onerror = null
-                                        e.target.src = "/placeholder.svg?height=80&width=80&text=IMG"
+                                        const target = e.target as HTMLImageElement;
+                                        target.onerror = null;
+                                        target.src = "/placeholder.svg?height=80&width=80&text=IMG";
                                       }}
                                   />
                                 </div>
@@ -1556,7 +1637,7 @@ export default function ChatInterface({ contact }) {
                     </div>
                     <div className="p-1">
                       {tagSuggestions.length > 0 ? (
-                          tagSuggestions.map((member) => (
+                          tagSuggestions.map((member: Member) => (
                               <button
                                   key={member.name}
                                   className="w-full text-left p-2 hover:bg-gray-50 rounded flex items-center gap-2"
@@ -1630,7 +1711,7 @@ export default function ChatInterface({ contact }) {
                               <button
                                   key={command.id}
                                   className="w-full text-left p-2 hover:bg-gray-50 rounded flex items-center gap-2"
-                                  onClick={() => insertQuickCommand(command.template)}
+                                  onClick={() => insertQuickCommand(command)}
                               >
                                 <div className="w-6 h-6 flex items-center justify-center">{command.icon}</div>
                                 <div className="flex-1">
@@ -1665,6 +1746,7 @@ export default function ChatInterface({ contact }) {
         </div>
 
         {/* Đảm bảo input file được đặt đúng vị trí và có thuộc tính đúng */}
+
         <input type="file" ref={fileInputRef} className="hidden" onChange={handleFileSelect} multiple />
         <input type="file" ref={imageInputRef} className="hidden" accept="image/*" onChange={handleFileSelect} multiple />
 
@@ -1841,10 +1923,10 @@ export default function ChatInterface({ contact }) {
                 {/* Hiển thị thẻ của liên hệ */}
                 {contactTags.length > 0 && (
                     <div className="flex flex-wrap gap-1 justify-center mb-4 max-w-[200px]">
-                      {contactTags.map((tag, idx) => (
+                      {contactTags.map(( tag: Tag, idx:number) => (
                           <span
                               key={idx}
-                              className={`text-xs px-1.5 py-0.5 rounded-full border ${getTagColorClass(tag.color)}`}
+                              className={`text-xs px-1.5 py-0.5 rounded-full border ${getTagColorClass(tag.color ?? "default")}`}
                           >
                       {tag.text}
                     </span>
@@ -1991,7 +2073,7 @@ export default function ChatInterface({ contact }) {
                 <h3 className="text-sm font-medium mb-2">Thẻ đã gắn</h3>
                 <div className="flex flex-wrap gap-2">
                   {contactTags.length > 0 ? (
-                      contactTags.map((tag, idx) => (
+                      contactTags.map((tag:Tag, idx:number) => (
                           <div
                               key={idx}
                               className={`flex items-center gap-1 px-2 py-1 rounded-full border ${getTagColorClass(tag.color)}`}
@@ -2128,7 +2210,7 @@ export default function ChatInterface({ contact }) {
             </DialogHeader>
             <div className="overflow-y-auto max-h-[calc(80vh-8rem)]">
               <div className="p-4 bg-gray-50 rounded-md whitespace-pre-wrap">
-                {currentPreviewFile && filePreviewContents[currentPreviewFile.id]}
+                {currentPreviewFile?.id && filePreviewContents[currentPreviewFile.id]}
               </div>
             </div>
             <DialogFooter>
